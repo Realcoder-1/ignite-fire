@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGNITE — FIRE Probability Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --surface: #111113;
+    --surface2: #18181c;
+    --border: #222228;
+    --accent: #e8c547;
+    --accent2: #4ade80;
+    --danger: #f87171;
+    --muted: #52525e;
+    --text: #f4f4f5;
+    --text2: #a1a1aa;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Playfair Display', serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,11,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+  }
+
+  .logo span {
+    color: var(--text2);
+    font-weight: 400;
+    font-size: 0.75rem;
+    font-family: var(--mono);
+    letter-spacing: 0.15em;
+    display: block;
+    margin-top: -4px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 4px 10px;
+    border-radius: 2px;
+    text-transform: uppercase;
+  }
+
+  .btn-upgrade {
+    background: var(--accent);
+    color: #0a0a0b;
+    border: none;
+    padding: 8px 20px;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    font-weight: 500;
+    border-radius: 2px;
+    transition: opacity 0.2s;
+  }
+  .btn-upgrade:hover { opacity: 0.85; }
+
+  .main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 40px;
+  }
+
+  .hero {
+    margin-bottom: 56px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.2rem, 4vw, 3.8rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .hero p {
+    color: var(--text2);
+    font-size: 0.95rem;
+    max-width: 520px;
+    line-height: 1.7;
+  }
+
+  /* Score display */
+  .score-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2px;
+    margin-bottom: 2px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  .score-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .score-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .score-card.active::after { transform: scaleX(1); }
+
+  .score-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .score-value {
+    font-family: var(--serif);
+    font-size: 3.5rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    transition: color 0.5s;
+  }
+
+  .score-value.good { color: var(--accent2); }
+  .score-value.warn { color: var(--accent); }
+  .score-value.bad { color: var(--danger); }
+
+  .score-sub {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text2);
+    margin-top: 8px;
+  }
+
+  /* Main layout */
+  .layout {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 2px;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .inputs-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 32px;
+  }
+
+  .panel-title {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .input-group {
+    margin-bottom: 24px;
+  }
+
+  .input-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .input-label span:first-child {
+    font-size: 0.8rem;
+    color: var(--text2);
+    font-family: var(--sans);
+    font-weight: 300;
+  }
+
+  .input-label .val {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 2px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+
+  .input-number-wrap {
+    position: relative;
+  }
+
+  .input-prefix {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  input[type="number"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px 10px 28px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input[type="number"]:focus { border-color: var(--accent); }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 24px 0;
+  }
+
+  .select-wrap select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+  }
+
+  .btn-run {
+    width: 100%;
+    background: var(--accent);
+    color: #0a0a0b;
+    border: none;
+    padding: 14px;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-weight: 500;
+    margin-top: 8px;
+    border-radius: 1px;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn-run:hover { opacity: 0.9; }
+  .btn-run:active { transform: scale(0.99); }
+
+  /* Chart panel */
+  .chart-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+
+  .chart-tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 24px;
+  }
+
+  .tab {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    background: var(--accent);
+    color: #0a0a0b;
+    border-color: var(--accent);
+  }
+
+  canvas {
+    width: 100% !important;
+    flex: 1;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin-bottom: 2px;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px 24px;
+  }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .stat-value.highlight { color: var(--accent); }
+  .stat-value.good { color: var(--accent2); }
+  .stat-value.bad { color: var(--danger); }
+
+  /* Scenarios */
+  .scenarios-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 32px;
+    animation: fadeUp 0.6s 0.4s ease both;
+    margin-bottom: 2px;
+  }
+
+  .scenarios-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .scenario-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 20px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scenario-card:hover { border-color: var(--accent); }
+
+  .scenario-card.locked::after {
+    content: '🔒 PRO';
+    position: absolute;
+    top: 8px; right: 8px;
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    background: rgba(232,197,71,0.1);
+    padding: 3px 6px;
+    border-radius: 2px;
+  }
+
+  .scenario-name {
+    font-family: var(--sans);
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .scenario-desc {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* Upgrade banner */
+  .upgrade-banner {
+    background: linear-gradient(135deg, rgba(232,197,71,0.08), rgba(232,197,71,0.03));
+    border: 1px solid rgba(232,197,71,0.3);
+    padding: 28px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: fadeUp 0.6s 0.5s ease both;
+  }
+
+  .upgrade-text h3 {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .upgrade-text p {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text2);
+    letter-spacing: 0.05em;
+  }
+
+  .upgrade-features {
+    display: flex;
+    gap: 24px;
+    margin: 0 32px;
+  }
+
+  .upgrade-feature {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .upgrade-feature::before {
+    content: '→';
+    color: var(--accent);
+  }
+
+  .btn-buy {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 12px 28px;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .btn-buy:hover {
+    background: var(--accent);
+    color: #0a0a0b;
+  }
+
+  .price-tag {
+    font-family: var(--serif);
+    font-size: 0.9rem;
+    color: var(--accent);
+    font-weight: 700;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* Probability meter */
+  .prob-meter {
+    margin-top: 12px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .prob-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 48px;
+    width: 480px;
+    max-width: 90vw;
+    transform: translateY(20px);
+    transition: transform 0.3s;
+  }
+
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal h2 {
+    font-family: var(--serif);
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 8px;
+  }
+
+  .modal-price {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin-bottom: 24px;
+    letter-spacing: 0.1em;
+  }
+
+  .modal-features {
+    list-style: none;
+    margin-bottom: 32px;
+  }
+
+  .modal-features li {
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    color: var(--text2);
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+  }
+
+  .modal-features li::before {
+    content: '✦';
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .btn-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    cursor: pointer;
+    margin-top: 16px;
+    letter-spacing: 0.08em;
+  }
+
+  .btn-close:hover { color: var(--text); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 900px) {
+    .main { padding: 24px 20px; }
+    .header { padding: 16px 20px; }
+    .score-panel { grid-template-columns: 1fr 1fr; }
+    .layout { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .scenarios-grid { grid-template-columns: 1fr 1fr; }
+    .upgrade-banner { flex-direction: column; gap: 20px; text-align: center; }
+    .upgrade-features { flex-direction: column; gap: 8px; align-items: center; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">
+    IGNITE
+    <span>FIRE PROBABILITY ENGINE</span>
+  </div>
+  <div class="header-right">
+    <div class="badge">Free Tier</div>
+    <button class="btn-upgrade" onclick="openModal()">Unlock Pro — $4.99/mo</button>
+  </div>
+</header>
+
+<main class="main">
+
+  <div class="hero">
+    <div class="hero-tag">Monte Carlo Retirement Simulator</div>
+    <h1>Will your money<br><em>outlive you?</em></h1>
+    <p>Run 10,000 simulations across historical market conditions. Know your FIRE probability before you quit — not after.</p>
+  </div>
+
+  <!-- Score Cards -->
+  <div class="score-panel" id="scorePanel">
+    <div class="score-card active" id="probCard">
+      <div class="score-label">FIRE Probability</div>
+      <div class="score-value warn" id="probScore">—</div>
+      <div class="score-sub" id="probSub">Run simulation to calculate</div>
+      <div class="prob-meter"><div class="prob-fill" id="probFill" style="width:0%; background: var(--accent)"></div></div>
+    </div>
+    <div class="score-card" id="fireCard">
+      <div class="score-label">FIRE Date</div>
+      <div class="score-value" id="fireDate" style="font-size:2.2rem">—</div>
+      <div class="score-sub" id="fireSub">At current savings rate</div>
+    </div>
+    <div class="score-card" id="coastCard">
+      <div class="score-label">Coast FIRE Number</div>
+      <div class="score-value highlight" id="coastNum" style="color:var(--text2)">—</div>
+      <div class="score-sub" id="coastSub">Amount to coast to retirement</div>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="layout">
+    <div class="inputs-panel">
+      <div class="panel-title">// Portfolio Parameters</div>
+
+      <div class="input-group">
+        <div class="input-label">
+          <span>Current Portfolio Value</span>
+          <span class="val" id="portVal">$500,000</span>
+        </div>
+        <input type="range" id="portfolio" min="10000" max="5000000" step="10000" value="500000" oninput="updateVal('portVal', this.value, '$', true)">
+      </div>
+
+      <div class="input-group">
+        <div class="input-label">
+          <span>Annual Spending (Retirement)</span>
+          <span class="val" id="spendVal">$40,000</span>
+        </div>
+        <input type="range" id="spending" min="10000" max="200000" step="1000" value="40000" oninput="updateVal('spendVal', this.value, '$', true)">
+      </div>
+
+      <div class="input-group">
+        <div class="input-label">
+          <span>Annual Savings (Now)</span>
+          <span class="val" id="savingsVal">$30,000</span>
+        </div>
+        <input type="range" id="savings" min="0" max="200000" step="1000" value="30000" oninput="updateVal('savingsVal', this.value, '$', true)">
+      </div>
+
+      <div class="input-group">
+        <div class="input-label">
+          <span>Current Age</span>
+          <span class="val" id="ageVal">35</span>
+        </div>
+        <input type="range" id="currentAge" min="20" max="65" step="1" value="35" oninput="updateVal('ageVal', this.value, '', false)">
+      </div>
+
+      <div class="input-group">
+        <div class="input-label">
+          <span>Target Retirement Age</span>
+          <span class="val" id="retireVal">50</span>
+        </div>
+        <input type="range" id="retireAge" min="35" max="75" step="1" value="50" oninput="updateVal('retireVal', this.value, '', false)">
+      </div>
+
+      <hr class="divider">
+      <div class="panel-title">// Market Assumptions</div>
+
+      <div class="input-group">
+        <div class="input-label">
+          <span>Expected Annual Return</span>
+          <span class="val" id="returnVal">7.0%</span>
+        </div>
+        <input type="range" id="returnRate" min="3" max="12" step="0.1" value="7" oninput="updateVal('returnVal', this.value, '', false, '%')">
+      </div>
+
+      <div class="input-group">
+        <div class="input-label">
+          <span>Withdrawal Rate (SWR)</span>
+          <span class="val" id="swrVal">4.0%</span>
+        </div>
+        <input type="range" id="swr" min="2" max="6" step="0.1" value="4" oninput="updateVal('swrVal', this.value, '', false, '%')">
+      </div>
+
+      <div class="input-group">
+        <div class="input-label">
+          <span>Inflation Rate</span>
+          <span class="val" id="inflVal">3.0%</span>
+        </div>
+        <input type="range" id="inflation" min="1" max="6" step="0.1" value="3" oninput="updateVal('inflVal', this.value, '', false, '%')">
+      </div>
+
+      <div class="input-group">
+        <div class="input-label"><span>Retirement Duration</span></div>
+        <div class="select-wrap">
+          <select id="duration">
+            <option value="30">30 years</option>
+            <option value="40" selected>40 years</option>
+            <option value="50">50 years</option>
+            <option value="60">60 years</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-run" onclick="runSimulation()">▶ RUN 10,000 SIMULATIONS</button>
+    </div>
+
+    <div class="chart-panel">
+      <div class="chart-header">
+        <div>
+          <div class="panel-title">// Monte Carlo Output</div>
+        </div>
+      </div>
+      <div class="chart-tabs">
+        <button class="tab active" onclick="switchTab('mc')">Monte Carlo Paths</button>
+        <button class="tab" onclick="switchTab('dist')">Success Distribution</button>
+        <button class="tab" onclick="switchTab('ladder')">Withdrawal Ladder</button>
+      </div>
+      <canvas id="mainChart" height="340"></canvas>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Median Portfolio at End</div>
+      <div class="stat-value highlight" id="medianEnd">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Worst 10th Percentile</div>
+      <div class="stat-value bad" id="worst10">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Best 90th Percentile</div>
+      <div class="stat-value good" id="best90">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Required FIRE Number</div>
+      <div class="stat-value" id="fireNumber">—</div>
+    </div>
+  </div>
+
+  <!-- Scenarios -->
+  <div class="scenarios-panel">
+    <div class="panel-title">// Stress Test Scenarios</div>
+    <div class="scenarios-grid">
+      <div class="scenario-card" onclick="applyScenario('base')">
+        <div class="scenario-name">Base Case</div>
+        <div class="scenario-desc">7% return, 3% inflation. Historical US average.</div>
+      </div>
+      <div class="scenario-card" onclick="applyScenario('conservative')">
+        <div class="scenario-name">Conservative</div>
+        <div class="scenario-desc">5% return, 3.5% inflation. Lower-return decade.</div>
+      </div>
+      <div class="scenario-card" onclick="applyScenario('optimistic')">
+        <div class="scenario-name">Bull Market</div>
+        <div class="scenario-desc">9% return, 2.5% inflation. Strong equity run.</div>
+      </div>
+      <div class="scenario-card locked" onclick="openModal()">
+        <div class="scenario-name">2000s Lost Decade</div>
+        <div class="scenario-desc">Sequence of returns shock. Retire at peak, crash follows.</div>
+      </div>
+      <div class="scenario-card locked" onclick="openModal()">
+        <div class="scenario-name">1970s Stagflation</div>
+        <div class="scenario-desc">High inflation erodes purchasing power. The FIRE killer.</div>
+      </div>
+      <div class="scenario-card locked" onclick="openModal()">
+        <div class="scenario-name">Global Diversified</div>
+        <div class="scenario-desc">60/40 international allocation. Lower volatility path.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upgrade Banner -->
+  <div class="upgrade-banner">
+    <div class="upgrade-text">
+      <h3>IGNITE Pro</h3>
+      <p>The full arsenal for serious FIRE planning.</p>
+      <span class="price-tag">$4.99 / month  ·  or $39 one-time</span>
+    </div>
+    <div class="upgrade-features">
+      <div class="upgrade-feature">Roth Conversion Ladder optimizer</div>
+      <div class="upgrade-feature">Social Security integration</div>
+      <div class="upgrade-feature">Tax-aware withdrawal sequencing</div>
+      <div class="upgrade-feature">Historical crash scenarios</div>
+      <div class="upgrade-feature">Exportable PDF report</div>
+      <div class="upgrade-feature">Spouse / dual income modeling</div>
+    </div>
+    <button class="btn-buy" onclick="openModal()">Unlock Everything</button>
+  </div>
+
+</main>
+
+<!-- Upgrade Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <h2>Unlock IGNITE Pro</h2>
+    <div class="modal-price">$4.99/month · Cancel anytime · or $39 one-time (best value)</div>
+    <ul class="modal-features">
+      <li>Full Monte Carlo with 10 historical crash scenarios</li>
+      <li>Roth Conversion Ladder optimizer with tax bracket awareness</li>
+      <li>Sequence of Returns Risk stress tester</li>
+      <li>Social Security income modeling</li>
+      <li>Dual income / spouse portfolio modeling</li>
+      <li>Tax-efficient withdrawal order engine</li>
+      <li>Exportable PDF FIRE report — share with your advisor</li>
+      <li>Barista FIRE + Lean FIRE + Fat FIRE mode switching</li>
+    </ul>
+    <button class="btn-upgrade" style="width:100%; padding:14px; font-size:0.8rem;" onclick="handlePurchase()">
+      Continue to Checkout — $39 one-time
+    </button>
+    <br>
+    <button class="btn-upgrade" style="width:100%; padding:14px; margin-top:8px; background:var(--surface2); color:var(--text); font-size:0.8rem;" onclick="handleSubscribe()">
+      Subscribe $4.99/month
+    </button>
+    <br>
+    <button class="btn-close" onclick="closeModal()">← No thanks, stay on free tier</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ─── Utility ───────────────────────────────────────────────────────────────
+
+function fmt(n) {
+  if (Math.abs(n) >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+  if (Math.abs(n) >= 1e3) return '$' + (n/1e3).toFixed(0) + 'K';
+  return '$' + n.toFixed(0);
+}
+
+function updateVal(id, val, prefix, money, suffix) {
+  val = parseFloat(val);
+  let display = money ? fmt(val) : (prefix + val + (suffix || ''));
+  document.getElementById(id).textContent = display;
+}
+
+// ─── State ──────────────────────────────────────────────────────────────────
+
+let chart = null;
+let currentTab = 'mc';
+let lastResults = null;
+
+function getParams() {
+  return {
+    portfolio: +document.getElementById('portfolio').value,
+    spending: +document.getElementById('spending').value,
+    savings: +document.getElementById('savings').value,
+    currentAge: +document.getElementById('currentAge').value,
+    retireAge: +document.getElementById('retireAge').value,
+    returnRate: +document.getElementById('returnRate').value / 100,
+    swr: +document.getElementById('swr').value / 100,
+    inflation: +document.getElementById('inflation').value / 100,
+    duration: +document.getElementById('duration').value
+  };
+}
+
+// ─── Monte Carlo Simulation ─────────────────────────────────────────────────
+
+function monteCarlo(params, simCount = 10000) {
+  const { portfolio, spending, savings, currentAge, retireAge, returnRate, swr, inflation, duration } = params;
+  const yearsToRetire = Math.max(0, retireAge - currentAge);
+  const annualVol = 0.16; // historical ~16% equity vol
+
+  const paths = [];
+  let successes = 0;
+  const finalValues = [];
+
+  for (let sim = 0; sim < simCount; sim++) {
+    // Accumulation phase
+    let bal = portfolio;
+    for (let y = 0; y < yearsToRetire; y++) {
+      const r = randomNormal(returnRate, annualVol);
+      bal = bal * (1 + r) + savings;
+    }
+
+    // Withdrawal phase
+    let withdrawalStart = spending;
+    const simPath = [bal];
+    let failed = false;
+
+    for (let y = 0; y < duration; y++) {
+      const r = randomNormal(returnRate - 0.005, annualVol);
+      const withdrawal = withdrawalStart * Math.pow(1 + inflation, y);
+      bal = bal * (1 + r) - withdrawal;
+      simPath.push(Math.max(bal, 0));
+      if (bal <= 0) { failed = true; break; }
+    }
+
+    if (!failed) successes++;
+    finalValues.push(bal);
+    paths.push(simPath);
+  }
+
+  finalValues.sort((a,b) => a-b);
+  const probability = (successes / simCount) * 100;
+
+  // Sample 200 paths for charting
+  const sample = [];
+  const step = Math.floor(simCount / 200);
+  for (let i = 0; i < simCount; i += step) sample.push(paths[i]);
+
+  // percentile paths
+  const p10 = paths[Math.floor(simCount * 0.10)];
+  const p25 = paths[Math.floor(simCount * 0.25)];
+  const p50 = paths[Math.floor(simCount * 0.50)];
+  const p75 = paths[Math.floor(simCount * 0.75)];
+  const p90 = paths[Math.floor(simCount * 0.90)];
+
+  return {
+    probability,
+    finalValues,
+    sample,
+    p10, p25, p50, p75, p90,
+    median: finalValues[Math.floor(simCount * 0.5)],
+    worst10: finalValues[Math.floor(simCount * 0.1)],
+    best90: finalValues[Math.floor(simCount * 0.9)],
+  };
+}
+
+// Box-Muller normal random
+function randomNormal(mean, std) {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return mean + std * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+// ─── FIRE Calculations ──────────────────────────────────────────────────────
+
+function calcFireDate(params) {
+  const { portfolio, spending, savings, currentAge, swr } = params;
+  const fireNumber = spending / swr;
+  // Estimate years to FIRE number at 7% return
+  let bal = portfolio;
+  let years = 0;
+  while (bal < fireNumber && years < 60) {
+    bal = bal * 1.07 + savings;
+    years++;
+  }
+  return { fireNumber, fireAge: currentAge + years, years };
+}
+
+function calcCoastFire(params) {
+  const { spending, currentAge, retireAge, swr } = params;
+  const fireNumber = spending / swr;
+  const yearsToRetire = retireAge - currentAge;
+  // How much do you need now to coast to FIRE number at 7%?
+  const coast = fireNumber / Math.pow(1.07, yearsToRetire);
+  return coast;
+}
+
+// ─── Run & Display ──────────────────────────────────────────────────────────
+
+function runSimulation() {
+  const btn = document.querySelector('.btn-run');
+  btn.textContent = '⟳ SIMULATING 10,000 PATHS...';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    const params = getParams();
+    const results = monteCarlo(params);
+    lastResults = { results, params };
+
+    const { fireNumber, fireAge, years } = calcFireDate(params);
+    const coast = calcCoastFire(params);
+
+    // Update score cards
+    const prob = results.probability;
+    const probEl = document.getElementById('probScore');
+    probEl.textContent = prob.toFixed(1) + '%';
+    probEl.className = 'score-value ' + (prob >= 85 ? 'good' : prob >= 65 ? 'warn' : 'bad');
+    document.getElementById('probSub').textContent = prob >= 85 ? 'High confidence. Your plan is solid.' : prob >= 65 ? 'Moderate confidence. Consider adjustments.' : 'High risk of running out. Revise plan.';
+    document.getElementById('probFill').style.width = prob + '%';
+    document.getElementById('probFill').style.background = prob >= 85 ? 'var(--accent2)' : prob >= 65 ? 'var(--accent)' : 'var(--danger)';
+
+    document.getElementById('fireDate').textContent = fireAge <= params.currentAge + 60 ? fireAge.toFixed(0) : '70+';
+    document.getElementById('fireDate').className = 'score-value ' + (fireAge <= params.retireAge ? 'good' : 'warn');
+    document.getElementById('fireSub').textContent = fireAge <= params.retireAge ? `${years} years away — on track!` : `${years} yrs — ${fireAge - params.retireAge} yrs past target`;
+
+    document.getElementById('coastNum').textContent = fmt(coast);
+    document.getElementById('coastNum').style.color = params.portfolio >= coast ? 'var(--accent2)' : 'var(--accent)';
+    document.getElementById('coastSub').textContent = params.portfolio >= coast ? '✓ You\'ve hit Coast FIRE!' : `Need ${fmt(coast - params.portfolio)} more`;
+
+    // Stats
+    document.getElementById('medianEnd').textContent = fmt(results.median);
+    document.getElementById('worst10').textContent = fmt(Math.max(results.worst10, 0));
+    document.getElementById('best90').textContent = fmt(results.best90);
+    document.getElementById('fireNumber').textContent = fmt(fireNumber);
+
+    renderChart(results, params);
+
+    document.querySelectorAll('.score-card').forEach(c => c.classList.add('active'));
+
+    btn.textContent = '▶ RUN 10,000 SIMULATIONS';
+    btn.disabled = false;
+  }, 80);
+}
+
+// ─── Chart Rendering ────────────────────────────────────────────────────────
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['mc','dist','ladder'][i] === tab);
+  });
+  if (lastResults) renderChart(lastResults.results, lastResults.params);
+}
+
+function renderChart(results, params) {
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  if (chart) chart.destroy();
+
+  const duration = params.duration;
+  const labels = Array.from({length: duration + 1}, (_, i) => params.retireAge + i);
+
+  if (currentTab === 'mc') {
+    // Show percentile bands + sample paths
+    const sampleDatasets = results.sample.slice(0, 80).map(path => ({
+      data: path.slice(0, duration + 1).map(v => Math.max(v, 0) / 1e6),
+      borderColor: 'rgba(232,197,71,0.07)',
+      borderWidth: 1,
+      pointRadius: 0,
+      fill: false,
+      tension: 0.3,
+    }));
+
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          ...sampleDatasets,
+          {
+            label: 'P90',
+            data: results.p90.slice(0, duration+1).map(v => Math.max(v,0)/1e6),
+            borderColor: 'rgba(74,222,128,0.6)',
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false,
+            tension: 0.3,
+          },
+          {
+            label: 'Median',
+            data: results.p50.slice(0, duration+1).map(v => Math.max(v,0)/1e6),
+            borderColor: 'rgba(232,197,71,0.9)',
+            borderWidth: 2.5,
+            pointRadius: 0,
+            fill: false,
+            tension: 0.3,
+          },
+          {
+            label: 'P10',
+            data: results.p10.slice(0, duration+1).map(v => Math.max(v,0)/1e6),
+            borderColor: 'rgba(248,113,113,0.6)',
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false,
+            tension: 0.3,
+          },
+        ]
+      },
+      options: chartOptions('Portfolio Value ($M)', 'Age')
+    });
+
+  } else if (currentTab === 'dist') {
+    // Histogram of final values
+    const vals = results.finalValues.map(v => v / 1e6);
+    const min = Math.min(...vals);
+    const max = Math.max(...vals.filter(v => v < 50));
+    const bins = 40;
+    const binSize = (max - min) / bins;
+    const counts = new Array(bins).fill(0);
+    vals.forEach(v => {
+      const idx = Math.min(Math.floor((v - min) / binSize), bins - 1);
+      if (idx >= 0) counts[idx]++;
+    });
+    const binLabels = counts.map((_, i) => (min + i * binSize).toFixed(1));
+
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: binLabels,
+        datasets: [{
+          label: 'Simulations',
+          data: counts,
+          backgroundColor: counts.map((_, i) => {
+            const val = min + i * binSize;
+            return val <= 0 ? 'rgba(248,113,113,0.6)' : 'rgba(232,197,71,0.5)';
+          }),
+          borderWidth: 0,
+        }]
+      },
+      options: chartOptions('Simulation Count', 'Final Portfolio Value ($M)')
+    });
+
+  } else if (currentTab === 'ladder') {
+    // Withdrawal ladder: spending adjusted for inflation each year
+    const years = Array.from({length: duration}, (_, i) => i + 1);
+    const nominal = years.map(y => params.spending * Math.pow(1 + params.inflation, y) / 1e3);
+    const real = years.map(() => params.spending / 1e3);
+
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: years.map(y => params.retireAge + y),
+        datasets: [
+          {
+            label: 'Nominal Withdrawal ($K)',
+            data: nominal,
+            backgroundColor: 'rgba(232,197,71,0.5)',
+            borderWidth: 0,
+          },
+          {
+            label: 'Real (Today\'s $K)',
+            data: real,
+            backgroundColor: 'rgba(74,222,128,0.3)',
+            borderWidth: 0,
+          }
+        ]
+      },
+      options: chartOptions('Amount ($K)', 'Age')
+    });
+  }
+}
+
+function chartOptions(yLabel, xLabel) {
+  return {
+    responsive: true,
+    maintainAspectRatio: true,
+    animation: { duration: 600, easing: 'easeOutQuart' },
+    plugins: {
+      legend: {
+        display: currentTab !== 'mc',
+        labels: { color: '#a1a1aa', font: { family: 'DM Mono', size: 10 } }
+      },
+      tooltip: {
+        backgroundColor: '#18181c',
+        borderColor: '#222228',
+        borderWidth: 1,
+        titleColor: '#e8c547',
+        bodyColor: '#a1a1aa',
+        titleFont: { family: 'DM Mono', size: 10 },
+        bodyFont: { family: 'DM Mono', size: 10 },
+        callbacks: {
+          label: ctx => {
+            const v = ctx.parsed.y;
+            return ` ${yLabel.includes('$') ? '$' : ''}${v.toFixed(2)}${yLabel.includes('$M') ? 'M' : yLabel.includes('K') ? 'K' : ''}`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255,255,255,0.03)' },
+        ticks: { color: '#52525e', font: { family: 'DM Mono', size: 9 }, maxTicksLimit: 10 }
+      },
+      y: {
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { color: '#52525e', font: { family: 'DM Mono', size: 9 } }
+      }
+    }
+  };
+}
+
+// ─── Scenarios ──────────────────────────────────────────────────────────────
+
+function applyScenario(name) {
+  const scenarios = {
+    base: { returnRate: 7, inflation: 3, swr: 4 },
+    conservative: { returnRate: 5, inflation: 3.5, swr: 3.5 },
+    optimistic: { returnRate: 9, inflation: 2.5, swr: 4.5 },
+  };
+  const s = scenarios[name];
+  if (!s) return;
+  document.getElementById('returnRate').value = s.returnRate;
+  document.getElementById('inflation').value = s.inflation;
+  document.getElementById('swr').value = s.swr;
+  document.getElementById('returnVal').textContent = s.returnRate.toFixed(1) + '%';
+  document.getElementById('inflVal').textContent = s.inflation.toFixed(1) + '%';
+  document.getElementById('swrVal').textContent = s.swr.toFixed(1) + '%';
+  runSimulation();
+}
+
+// ─── Modal ──────────────────────────────────────────────────────────────────
+
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function handlePurchase() {
+  // Wire to Stripe / Lemon Squeezy / Paddle
+  alert('Connect your payment processor here (Stripe, Lemon Squeezy, or Paddle).\n\nReplace this with: window.location.href = YOUR_CHECKOUT_LINK');
+}
+
+function handleSubscribe() {
+  alert('Connect your subscription processor here.\n\nReplace this with: window.location.href = YOUR_SUBSCRIPTION_LINK');
+}
+
+// ─── Init ───────────────────────────────────────────────────────────────────
+
+// Run on load with defaults
+window.addEventListener('load', () => {
+  setTimeout(runSimulation, 400);
+});
+</script>
+</body>
+</html>
