@@ -4,37 +4,1617 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IGNITE — FIRE Probability Engine</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Söhne+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+
 <style>
 :root {
-  --bg:       #080809;
-  --surface:  #0f0f11;
-  --surface2: #141416;
-  --surface3: #1a1a1e;
-  --border:   #1e1e24;
-  --border2:  #28282f;
-  --gold:     #c8a84b;
-  --green:    #3a9068;
-  --red:      #b83232;
-  --text:     #eeede6;
-  --text2:    #888890;
-  --text3:    #46464e;
+  --bg: #080808;
+  --bg2: #0e0e0f;
+  --surface: #111112;
+  --surface2: #161618;
+  --border: #1e1e22;
+  --border2: #2a2a30;
+  --gold: #c9a84c;
+  --gold2: #e8c96a;
+  --gold-dim: rgba(201,168,76,0.15);
+  --gold-glow: rgba(201,168,76,0.06);
+  --green: #3d9970;
+  --red: #c0392b;
+  --text: #f0efe8;
+  --text2: #8a8a8f;
+  --text3: #4a4a52;
   --mono: 'DM Mono', monospace;
   --serif: 'Cormorant Garamond', serif;
   --sans: 'DM Sans', sans-serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
 
-/* ── HEADER ─────────────────────────────── */
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+/* Custom cursor */
+.cursor {
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.15s ease;
+  mix-blend-mode: difference;
+}
+
+/* Grain */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ─── HEADER ─────────────────────────────────── */
 .header {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 48px;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 48px;
   border-bottom: 1px solid var(--border);
-  background: rgba(8,8,9,0.95);
+  background: rgba(8,8,8,0.9);
+  backdrop-filter: blur(20px);
+}
+
+.logo-mark {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-line {
+  width: 32px;
+  height: 1px;
+  background: var(--gold);
+}
+
+.logo-text {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  color: var(--text);
+  text-transform: uppercase;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.nav-link {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: var(--text2);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+.nav-link:hover { color: var(--gold); }
+
+.btn-access {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  background: var(--gold);
+  color: #080808;
+  border: none;
+  padding: 10px 24px;
+  cursor: crosshair;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+.btn-access:hover { opacity: 0.85; }
+
+/* ─── HERO ───────────────────────────────────── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 48px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 40%, rgba(201,168,76,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 20% 70%, rgba(61,153,112,0.03) 0%, transparent 60%);
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 80px 80px;
+  opacity: 0.3;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 80%);
+}
+
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: rise 0.8s 0.2s ease forwards;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hero-eyebrow::before {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 1px;
+  background: var(--gold);
+}
+
+.hero-headline {
+  font-family: var(--serif);
+  font-size: clamp(4rem, 9vw, 9rem);
+  font-weight: 300;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 40px;
+  opacity: 0;
+  animation: rise 0.8s 0.35s ease forwards;
+}
+
+.hero-headline em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+.hero-bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  opacity: 0;
+  animation: rise 0.8s 0.5s ease forwards;
+}
+
+.hero-desc {
+  max-width: 420px;
+  font-size: 0.95rem;
+  color: var(--text2);
+  line-height: 1.75;
+  font-weight: 300;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 48px;
+}
+
+.hero-stat-num {
+  font-family: var(--serif);
+  font-size: 2.8rem;
+  font-weight: 300;
+  color: var(--gold);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.hero-stat-label {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+/* ─── PROOF STRIP ────────────────────────────── */
+.proof-strip {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 48px;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  overflow: hidden;
+}
+
+.proof-item {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  text-transform: uppercase;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.proof-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex-shrink: 0;
+}
+
+/* ─── PAYWALL SECTION ────────────────────────── */
+.paywall-section {
+  padding: 120px 48px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.paywall-left h2 {
+  font-family: var(--serif);
+  font-size: clamp(2.5rem, 4vw, 4rem);
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+}
+
+.paywall-left h2 em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+.paywall-left p {
+  color: var(--text2);
+  font-size: 0.95rem;
+  line-height: 1.75;
+  font-weight: 300;
+  margin-bottom: 40px;
+  max-width: 400px;
+}
+
+.features-list {
+  list-style: none;
+  margin-bottom: 48px;
+}
+
+.features-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+  color: var(--text2);
+  font-weight: 300;
+}
+
+.features-list li::before {
+  content: '→';
+  color: var(--gold);
+  flex-shrink: 0;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  margin-top: 1px;
+}
+
+.price-block {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.price-amount {
+  font-family: var(--serif);
+  font-size: 4rem;
+  font-weight: 300;
+  color: var(--gold);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.price-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.price-note {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  margin-bottom: 32px;
+}
+
+.btn-buy {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--gold);
+  color: #080808;
+  border: none;
+  padding: 18px 40px;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: crosshair;
+  font-weight: 500;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-buy::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.1);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+.btn-buy:hover::after { transform: translateX(0); }
+
+.btn-buy-arrow { font-size: 1rem; }
+
+.guarantee {
+  margin-top: 16px;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Preview card */
+.paywall-right {
+  position: relative;
+}
+
+.preview-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.preview-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.preview-blur {
+  filter: blur(6px);
+  opacity: 0.4;
+  pointer-events: none;
+  user-select: none;
+}
+
+.preview-lock {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: radial-gradient(ellipse at center, rgba(8,8,8,0.8) 0%, rgba(8,8,8,0.4) 100%);
+}
+
+.lock-icon {
+  font-size: 2rem;
+  filter: grayscale(1);
+}
+
+.lock-text {
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  font-weight: 300;
+  color: var(--text);
+  letter-spacing: 0.05em;
+}
+
+.lock-sub {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+
+/* Fake chart lines */
+.fake-chart {
+  height: 140px;
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.fake-line {
+  position: absolute;
+  height: 1px;
+  left: 0; right: 0;
+  background: var(--border);
+}
+
+.fake-line-1 { top: 20%; }
+.fake-line-2 { top: 50%; }
+.fake-line-3 { top: 80%; }
+
+.fake-path {
+  position: absolute;
+  inset: 0;
+}
+
+.fake-score-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.fake-score {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 14px;
+}
+
+.fake-score-label {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.fake-score-val {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+
+/* ─── APP (LOCKED BY DEFAULT) ────────────────── */
+.app-section {
+  display: none;
+  padding: 80px 48px;
+  animation: fadeIn 0.6s ease;
+}
+
+.app-section.unlocked {
+  display: block;
+}
+
+/* Score cards */
+.scores-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.score-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 28px 32px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.score-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1s cubic-bezier(0.16,1,0.3,1);
+}
+
+.score-card.lit::after { transform: scaleX(1); }
+
+.score-tag {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.score-num {
+  font-family: var(--serif);
+  font-size: 3.2rem;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  transition: color 0.5s;
+}
+
+.score-sub {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--text3);
+  margin-top: 10px;
+  letter-spacing: 0.05em;
+}
+
+.score-bar {
+  height: 2px;
+  background: var(--border);
+  margin-top: 16px;
+  overflow: hidden;
+}
+
+.score-bar-fill {
+  height: 100%;
+  transition: width 1.2s cubic-bezier(0.16,1,0.3,1);
+}
+
+/* Main layout */
+.app-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.inputs-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 32px;
+}
+
+.panel-label {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.22em;
+  color: var(--text3);
+  text-transform: uppercase;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+}
+
+.input-group { margin-bottom: 22px; }
+
+.input-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.input-name {
+  font-size: 0.8rem;
+  color: var(--text2);
+  font-weight: 300;
+}
+
+.input-val {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--gold);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 1px;
+  background: var(--border2);
+  outline: none;
+  cursor: crosshair;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--gold);
+  border-radius: 50%;
+  cursor: crosshair;
+  transition: transform 0.15s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.4); }
+
+.divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+.select-field {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  outline: none;
+  cursor: crosshair;
+  appearance: none;
+}
+
+.run-btn {
+  width: 100%;
+  background: var(--gold);
+  color: #080808;
+  border: none;
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: crosshair;
+  font-weight: 500;
+  margin-top: 8px;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.run-btn:hover { opacity: 0.88; }
+.run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Chart */
+.chart-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 24px;
+}
+
+.tab-btn {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  cursor: crosshair;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background: var(--gold);
+  color: #080808;
+  border-color: var(--gold);
+}
+
+canvas { width: 100% !important; flex: 1; }
+
+/* Stats */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 20px 24px;
+}
+
+.stat-label {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.15em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.stat-val {
+  font-family: var(--mono);
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+/* Scenarios */
+.scenarios-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 32px;
+  margin-bottom: 2px;
+}
+
+.scenarios-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.scenario-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 18px;
+  cursor: crosshair;
+  text-align: left;
+  transition: border-color 0.2s;
+}
+
+.scenario-btn:hover { border-color: var(--gold); }
+
+.scenario-name {
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.scenario-desc {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--text3);
+  line-height: 1.5;
+  letter-spacing: 0.03em;
+}
+
+/* ─── FOOTER ─────────────────────────────────── */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-left {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+}
+
+.footer-right {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+}
+
+/* ─── MODAL ──────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  backdrop-filter: blur(8px);
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  padding: 56px;
+  width: 520px;
+  max-width: 92vw;
+  transform: translateY(24px);
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  position: relative;
+}
+
+.modal::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.modal-overlay.open .modal { transform: translateY(0); }
+
+.modal-eyebrow {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.modal h2 {
+  font-family: var(--serif);
+  font-size: 2.8rem;
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.modal-price {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--gold);
+  margin-bottom: 32px;
+  letter-spacing: 0.08em;
+}
+
+.modal-features {
+  list-style: none;
+  margin-bottom: 40px;
+}
+
+.modal-features li {
+  font-size: 0.88rem;
+  color: var(--text2);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.modal-features li::before {
+  content: '✦';
+  color: var(--gold);
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 24px; right: 24px;
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  cursor: crosshair;
+  text-transform: uppercase;
+}
+
+.modal-close:hover { color: var(--text); }
+
+/* ─── ANIMATIONS ─────────────────────────────── */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── RESPONSIVE ─────────────────────────────── */
+@media (max-width: 900px) {
+  .header { padding: 16px 24px; }
+  .header-nav { display: none; }
+  .hero { padding: 100px 24px 60px; }
+  .hero-bottom { flex-direction: column; gap: 32px; align-items: flex-start; }
+  .hero-stats { gap: 32px; }
+  .proof-strip { padding: 16px 24px; }
+  .paywall-section { grid-template-columns: 1fr; padding: 80px 24px; gap: 48px; }
+  .app-section { padding: 48px 24px; }
+  .scores-grid { grid-template-columns: 1fr; }
+  .app-layout { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .scenarios-grid { grid-template-columns: 1fr 1fr; }
+  .footer { flex-direction: column; gap: 12px; padding: 24px; text-align: center; }
+  .modal { padding: 36px 28px; }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo-mark">
+    <div class="logo-line"></div>
+    <div class="logo-text">Ignite</div>
+  </div>
+  <nav class="header-nav">
+    <a href="#how" class="nav-link">How it works</a>
+    <a href="#pricing" class="nav-link">Pricing</a>
+    <button class="btn-access" onclick="openModal()">Get Access — $39</button>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-eyebrow">Monte Carlo Retirement Engine</div>
+
+  <h1 class="hero-headline">
+    Will your<br>
+    money <em>last?</em>
+  </h1>
+
+  <div class="hero-bottom">
+    <p class="hero-desc">
+      10,000 simulations run in seconds. One number tells you everything. Built for the FIRE community — by people who take early retirement seriously.
+    </p>
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-num">10K</div>
+        <div class="hero-stat-label">Simulations per run</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">3</div>
+        <div class="hero-stat-label">Seconds to result</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">$39</div>
+        <div class="hero-stat-label">One-time. Forever.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF STRIP -->
+<div class="proof-strip">
+  <div class="proof-item"><div class="proof-dot"></div>Monte Carlo Simulation</div>
+  <div class="proof-item"><div class="proof-dot"></div>Safe Withdrawal Rate Analysis</div>
+  <div class="proof-item"><div class="proof-dot"></div>Coast FIRE Calculator</div>
+  <div class="proof-item"><div class="proof-dot"></div>Sequence of Returns Risk</div>
+  <div class="proof-item"><div class="proof-dot"></div>Withdrawal Ladder Modeling</div>
+  <div class="proof-item"><div class="proof-dot"></div>No Subscription. Ever.</div>
+</div>
+
+<!-- PAYWALL SECTION -->
+<section class="paywall-section" id="pricing">
+  <div class="paywall-left reveal">
+    <h2>The only number<br>that <em>actually matters</em></h2>
+    <p>
+      Your FIRE Probability Score. How likely is your money to last 40+ years across 10,000 simulated market scenarios — including crashes, inflation shocks, and lost decades.
+    </p>
+
+    <ul class="features-list">
+      <li>Full Monte Carlo with 10,000 retirement path simulations</li>
+      <li>FIRE date calculator at current savings rate</li>
+      <li>Coast FIRE number — when you can stop saving</li>
+      <li>Stress test: Base, Conservative, and Bull market scenarios</li>
+      <li>Withdrawal ladder — see inflation erode your spending power</li>
+      <li>P10 / Median / P90 percentile path visualization</li>
+      <li>Safe Withdrawal Rate sensitivity analysis</li>
+    </ul>
+
+    <div class="price-block">
+      <div class="price-amount">$39</div>
+      <div>
+        <div class="price-label">One-time payment</div>
+        <div class="price-label" style="color:var(--green); margin-top:2px;">Lifetime access</div>
+      </div>
+    </div>
+    <div class="price-note">No subscription. No renewal. Own it forever.</div>
+
+    <button class="btn-buy" onclick="openModal()">
+      <span>Unlock Full Access</span>
+      <span class="btn-buy-arrow">→</span>
+    </button>
+
+    <div class="guarantee">
+      <span>●</span>
+      <span>30-day money back guarantee · Instant access · No account required</span>
+    </div>
+  </div>
+
+  <div class="paywall-right reveal">
+    <div class="preview-card">
+      <!-- Blurred preview of the app -->
+      <div class="preview-blur">
+        <div class="fake-score-row" style="margin-bottom:20px;">
+          <div class="fake-score">
+            <div class="fake-score-label">FIRE Probability</div>
+            <div class="fake-score-val" style="color:var(--green)">87.3%</div>
+          </div>
+          <div class="fake-score">
+            <div class="fake-score-label">FIRE Age</div>
+            <div class="fake-score-val" style="color:var(--gold)">48</div>
+          </div>
+          <div class="fake-score">
+            <div class="fake-score-label">Coast FIRE</div>
+            <div class="fake-score-val">$312K</div>
+          </div>
+        </div>
+
+        <div class="fake-chart">
+          <div class="fake-line fake-line-1"></div>
+          <div class="fake-line fake-line-2"></div>
+          <div class="fake-line fake-line-3"></div>
+          <svg class="fake-path" viewBox="0 0 400 140" preserveAspectRatio="none">
+            <path d="M0,100 C50,90 100,60 150,70 C200,80 250,30 300,20 C350,10 380,15 400,10" stroke="#3d9970" stroke-width="1.5" fill="none" opacity="0.6"/>
+            <path d="M0,110 C50,105 100,80 150,85 C200,90 250,55 300,45 C350,35 380,40 400,38" stroke="#c9a84c" stroke-width="2" fill="none"/>
+            <path d="M0,120 C50,118 100,110 150,115 C200,120 250,100 300,108 C350,116 380,112 400,120" stroke="#c0392b" stroke-width="1.5" fill="none" opacity="0.6"/>
+          </svg>
+        </div>
+
+        <div class="fake-score-row">
+          <div class="fake-score">
+            <div class="fake-score-label">Median End</div>
+            <div class="fake-score-val" style="font-size:1.1rem;color:var(--gold)">$2.4M</div>
+          </div>
+          <div class="fake-score">
+            <div class="fake-score-label">Worst 10%</div>
+            <div class="fake-score-val" style="font-size:1.1rem;color:var(--red)">$0</div>
+          </div>
+          <div class="fake-score">
+            <div class="fake-score-label">Best 90%</div>
+            <div class="fake-score-val" style="font-size:1.1rem;color:var(--green)">$6.1M</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-lock">
+        <div class="lock-icon">🔒</div>
+        <div class="lock-text">Full Access — $39</div>
+        <div class="lock-sub">One-time · Lifetime · Instant</div>
+        <button class="btn-buy" style="margin-top:16px; font-size:0.6rem; padding:14px 28px;" onclick="openModal()">
+          Unlock Now →
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APP SECTION (hidden until unlocked) -->
+<section class="app-section" id="appSection">
+  <div style="margin-bottom:48px;">
+    <div style="font-family:var(--mono);font-size:0.55rem;letter-spacing:0.22em;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">// Full Access Unlocked</div>
+    <h2 style="font-family:var(--serif);font-size:2.5rem;font-weight:300;letter-spacing:-0.02em;">Your FIRE Simulator</h2>
+  </div>
+
+  <!-- Score Cards -->
+  <div class="scores-grid" style="margin-bottom:2px;">
+    <div class="score-card" id="probCard">
+      <div class="score-tag">FIRE Probability</div>
+      <div class="score-num" id="probScore" style="color:var(--text2)">—</div>
+      <div class="score-sub" id="probSub">Run simulation to calculate</div>
+      <div class="score-bar"><div class="score-bar-fill" id="probBar" style="width:0%;background:var(--gold)"></div></div>
+    </div>
+    <div class="score-card">
+      <div class="score-tag">FIRE Age</div>
+      <div class="score-num" id="fireAge" style="color:var(--text2)">—</div>
+      <div class="score-sub" id="fireAgeSub">At current savings rate</div>
+    </div>
+    <div class="score-card">
+      <div class="score-tag">Coast FIRE Number</div>
+      <div class="score-num" id="coastNum" style="font-size:2rem;color:var(--text2)">—</div>
+      <div class="score-sub" id="coastSub">Amount needed to coast</div>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="app-layout">
+    <div class="inputs-panel">
+      <div class="panel-label">// Portfolio Parameters</div>
+
+      <div class="input-group">
+        <div class="input-row">
+          <span class="input-name">Current Portfolio</span>
+          <span class="input-val" id="portVal">$500K</span>
+        </div>
+        <input type="range" id="portfolio" min="10000" max="5000000" step="10000" value="500000" oninput="fmtSlider('portVal',this.value,'money')">
+      </div>
+
+      <div class="input-group">
+        <div class="input-row">
+          <span class="input-name">Annual Spending (Retirement)</span>
+          <span class="input-val" id="spendVal">$40K</span>
+        </div>
+        <input type="range" id="spending" min="10000" max="200000" step="1000" value="40000" oninput="fmtSlider('spendVal',this.value,'money')">
+      </div>
+
+      <div class="input-group">
+        <div class="input-row">
+          <span class="input-name">Annual Savings (Now)</span>
+          <span class="input-val" id="savingsVal">$30K</span>
+        </div>
+        <input type="range" id="savings" min="0" max="200000" step="1000" value="30000" oninput="fmtSlider('savingsVal',this.value,'money')">
+      </div>
+
+      <div class="input-group">
+        <div class="input-row">
+          <span class="input-name">Current Age</span>
+          <span class="input-val" id="ageVal">35</span>
+        </div>
+        <input type="range" id="currentAge" min="20" max="65" step="1" value="35" oninput="fmtSlider('ageVal',this.value,'plain')">
+      </div>
+
+      <div class="input-group">
+        <div class="input-row">
+          <span class="input-name">Target Retirement Age</span>
+          <span class="input-val" id="retireVal">50</span>
+        </div>
+        <input type="range" id="retireAge" min="30" max="75" step="1" value="50" oninput="fmtSlider('retireVal',this.value,'plain')">
+      </div>
+
+      <div class="divider"></div>
+      <div class="panel-label">// Market Assumptions</div>
+
+      <div class="input-group">
+        <div class="input-row">
+          <span class="input-name">Expected Return</span>
+          <span class="input-val" id="retVal">7.0%</span>
+        </div>
+        <input type="range" id="returnRate" min="3" max="12" step="0.1" value="7" oninput="fmtSlider('retVal',this.value,'pct')">
+      </div>
+
+      <div class="input-group">
+        <div class="input-row">
+          <span class="input-name">Safe Withdrawal Rate</span>
+          <span class="input-val" id="swrVal">4.0%</span>
+        </div>
+        <input type="range" id="swr" min="2" max="6" step="0.1" value="4" oninput="fmtSlider('swrVal',this.value,'pct')">
+      </div>
+
+      <div class="input-group">
+        <div class="input-row">
+          <span class="input-name">Inflation Rate</span>
+          <span class="input-val" id="inflVal">3.0%</span>
+        </div>
+        <input type="range" id="inflation" min="1" max="6" step="0.1" value="3" oninput="fmtSlider('inflVal',this.value,'pct')">
+      </div>
+
+      <div class="input-group">
+        <div class="input-row"><span class="input-name">Retirement Duration</span></div>
+        <select class="select-field" id="duration">
+          <option value="30">30 years</option>
+          <option value="40" selected>40 years</option>
+          <option value="50">50 years</option>
+          <option value="60">60 years</option>
+        </select>
+      </div>
+
+      <button class="run-btn" id="runBtn" onclick="runSim()">
+        <span>▶ Run 10,000 Simulations</span>
+      </button>
+    </div>
+
+    <div class="chart-panel">
+      <div class="panel-label">// Monte Carlo Output</div>
+      <div class="chart-tabs">
+        <button class="tab-btn active" onclick="switchTab('mc',this)">Paths</button>
+        <button class="tab-btn" onclick="switchTab('dist',this)">Distribution</button>
+        <button class="tab-btn" onclick="switchTab('ladder',this)">Withdrawal Ladder</button>
+      </div>
+      <canvas id="mainChart" height="320"></canvas>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Median Portfolio End</div>
+      <div class="stat-val" id="statMedian" style="color:var(--gold)">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Worst 10th Percentile</div>
+      <div class="stat-val" id="statWorst" style="color:var(--red)">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Best 90th Percentile</div>
+      <div class="stat-val" id="statBest" style="color:var(--green)">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Required FIRE Number</div>
+      <div class="stat-val" id="statFire">—</div>
+    </div>
+  </div>
+
+  <!-- Scenarios -->
+  <div class="scenarios-panel">
+    <div class="panel-label">// Quick Scenarios</div>
+    <div class="scenarios-grid">
+      <button class="scenario-btn" onclick="applyScenario('base')">
+        <div class="scenario-name">Base Case</div>
+        <div class="scenario-desc">7% return · 3% inflation · Historical US average</div>
+      </button>
+      <button class="scenario-btn" onclick="applyScenario('conservative')">
+        <div class="scenario-name">Conservative</div>
+        <div class="scenario-desc">5% return · 3.5% inflation · Lower-return decade</div>
+      </button>
+      <button class="scenario-btn" onclick="applyScenario('bull')">
+        <div class="scenario-name">Bull Market</div>
+        <div class="scenario-desc">9% return · 2.5% inflation · Strong equity run</div>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-left">© 2025 IGNITE — FIRE Probability Engine</div>
+  <div class="footer-right">Built for the FIRE community · No subscription · No tracking</div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕ Close</button>
+    <div class="modal-eyebrow">One-time purchase · Lifetime access</div>
+    <h2>Unlock<br>Full Access</h2>
+    <div class="modal-price">$39 · Pay once · Use forever · 30-day guarantee</div>
+
+    <ul class="modal-features">
+      <li>10,000 Monte Carlo retirement path simulations</li>
+      <li>FIRE Probability Score — one number, total clarity</li>
+      <li>FIRE date calculator at current savings trajectory</li>
+      <li>Coast FIRE number — when you can stop contributing</li>
+      <li>Safe Withdrawal Rate sensitivity testing</li>
+      <li>Withdrawal ladder with inflation modeling</li>
+      <li>Base, Conservative, and Bull market scenarios</li>
+      <li>P10 / Median / P90 percentile visualizations</li>
+    </ul>
+
+    <button class="btn-buy" style="width:100%;justify-content:center;" onclick="handlePurchase()">
+      Pay $39 — Get Instant Access →
+    </button>
+
+    <div class="guarantee" style="margin-top:16px;justify-content:center;">
+      <span>●</span>
+      <span>30-day money back guarantee · Secure payment via Stripe</span>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ─── Cursor ───────────────────────────────────────────────────────────────
+const cur = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX - 3 + 'px';
+  cur.style.top  = e.clientY - 3 + 'px';
+});
+
+// ─── Reveal on scroll ─────────────────────────────────────────────────────
+const obs = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 120);
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// ─── Paywall ──────────────────────────────────────────────────────────────
+// DEMO MODE: set to true to bypass paywall for testing
+const DEMO_MODE = false;
+let unlocked = DEMO_MODE;
+
+// Check localStorage for purchase
+if (localStorage.getItem('ignite_unlocked') === 'true') unlocked = true;
+if (unlocked) showApp();
+
+function handlePurchase() {
+  // REPLACE THIS URL with your Stripe / Lemon Squeezy checkout link
+  const CHECKOUT_URL = 'https://buy.stripe.com/YOUR_LINK_HERE';
+  window.location.href = CHECKOUT_URL;
+
+  // FOR DEMO/TESTING — comment out above and uncomment below:
+  // unlocked = true;
+  // localStorage.setItem('ignite_unlocked', 'true');
+  // closeModal();
+  // showApp();
+  // document.getElementById('appSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showApp() {
+  document.getElementById('appSection').classList.add('unlocked');
+  setTimeout(runSim, 300);
+}
+
+// ─── Modal ────────────────────────────────────────────────────────────────
+function openModal() {
+  if (unlocked) {
+    document.getElementById('appSection').scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModalOutside(e) { if (e.target.id === 'modalOverlay') closeModal(); }
+
+// ─── Formatting ───────────────────────────────────────────────────────────
+function fmt(n) {
+  const a = Math.abs(n);
+  if (a >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+  if (a >= 1e3) return '$' + (n/1e3).toFixed(0) + 'K';
+  return '$' + Math.round(n);
+}
+
+function fmtSlider(id, val, type) {
+  val = parseFloat(val);
+  let out;
+  if (type === 'money') out = fmt(val);
+  else if (type === 'pct') out = val.toFixed(1) + '%';
+  else out = String(Math.round(val));
+  document.getElementById(id).textContent = out;
+}
+
+// ─── Simulation Engine ────────────────────────────────────────────────────
+function randNorm(mean, std) {
+  let u = 0, v = 0;
+  while (!u) u = Math.random();
+  while (!v) v = Math.random();
+  return mean + std * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function monteCarlo(p, n = 10000) {
+  const { portfolio, spending, savings, currentAge, retireAge, returnRate, inflation, duration } = p;
+  const yrs = Math.max(0, retireAge - currentAge);
+  const vol = 0.16;
+  let successes = 0;
+  const finals = [];
+  const allPaths = [];
+
+  for (let i = 0; i < n; i++) {
+    let bal = portfolio;
+    for (let y = 0; y < yrs; y++) bal = bal * (1 + randNorm(returnRate, vol)) + savings;
+
+    const path = [Math.max(bal, 0)];
+    let failed = false;
+    for (let y = 0; y < duration; y++) {
+      bal = bal * (1 + randNorm(returnRate - 0.005, vol)) - spending * Math.pow(1 + inflation, y);
+      path.push(Math.max(bal, 0));
+      if (bal <= 0) { failed = true; break; }
+    }
+    if (!failed) successes++;
+    finals.push(bal);
+    allPaths.push(path);
+  }
+
+  allPaths.sort((a, b) => (b[b.length-1]||0) - (a[a.length-1]||0));
+  finals.sort((a, b) => a - b);
+
+  return {
+    probability: (successes / n) * 100,
+    p10: allPaths[Math.floor(n * 0.9)],
+    p50: allPaths[Math.floor(n * 0.5)],
+    p90: allPaths[Math.floor(n * 0.1)],
+    median: finals[Math.floor(n * 0.5)],
+    worst10: Math.max(finals[Math.floor(n * 0.1)], 0),
+    best90: finals[Math.floor(n * 0.9)],
+    finals,
+  };
+}
+
+function getParams() {
+  return {
+    portfolio:  +document.getElementById('portfolio').value,
+    spending:   +document.getElementById('spending').value,
+    savings:    +document.getElementById('savings').value,
+    currentAge: +document.getElementById('currentAge').value,
+    retireAge:  +document.getElementById('retireAge').value,
+    returnRate: +document.getElementById('returnRate').value / 100,
+    swr:        +document.getElementById('swr').value / 100,
+    inflation:  +document.getElementById('inflation').value / 100,
+    duration:   +document.getElementById('duration').value,
+  };
+}
+
+function calcFire(p) {
+  const fireNum = p.spending / p.swr;
+  let bal = p.portfolio, yrs = 0;
+  while (bal < fireNum && yrs < 60) { bal = bal * 1.07 + p.savings; yrs++; }
+  return { fireNum, fireAge: p.currentAge + yrs, yrs };
+}
+
+function calcCoast(p) {
+  const fireNum = p.spending / p.swr;
+  return fireNum / Math.pow(1.07, Math.max(1, p.retireAge - p.currentAge));
+}
+
+// ─── Chart ────────────────────────────────────────────────────────────────
+let chart = null, curTab = 'mc', lastResults = null, lastParams = null;
+
+function switchTab(tab, el) {
+  curTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if (lastResults) renderChart(lastResults, lastParams);
+}
+
+function renderChart(r, p) {
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  if (chart) chart.destroy();
+
+  const dur = p.duration;
+  const labels = Array.from({length: dur + 1}, (_, i) => p.retireAge + i);
+
+  const baseOpts = {
+    responsive: true,
+    maintainAspectRatio: true,
+    animation: { duration: 700, easing: 'easeOutQuart' },
+    plugins: {
+      legend: { display: curTab !== 'mc', labels: { color: '#4a4a52', font: { family: 'DM Mono', size: 9 } } },
+      tooltip: {
+        backgroundColor: '#161618',
+        borderColor: '#2a2a30',
+        borderWidth: 1,
+        titleColor: '#c9a84c',
+        bodyColor: '#8a8a8f',
+        titleFont: { family: 'DM Mono', size: 9 },
+        bodyFont:  { family: 'DM Mono', size: 9 },
+      }
+    },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#4a4a52', font: { family: 'DM Mono', size: 8 }, maxTicksLimit: 8 } },
+      y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#4a4a52', font: { family: 'DM Mono', size: 8 } } },
+    }
+  };
+
+  if (curTab === 'mc') {
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'P90', data: r.p90?.slice(0,dur+1).map(v=>Math.max(v,0)/1e6)||[], borderColor:'rgba(61,153,112,0.7)', borderWidth:2, pointRadius:0, fill:false, tension:0.3 },
+          { label: 'Median', data: r.p50?.slice(0,dur+1).map(v=>Math.max(v,0)/1e6)||[], borderColor:'rgba(201,168,76,0.95)', borderWidth:2.5, pointRadius:0, fill:false, tension:0.3 },
+          { label: 'P10', data: r.p10?.slice(0,dur+1).map(v=>Math.max(v,0)/1e6)||[], borderColor:'rgba(192,57,43,0.7)', borderWidth:2, pointRadius:0, fill:false, tension:0.3 },
+        ]
+      },
+      options: { ...baseOpts }
+    });
+  } else if (curTab === 'dist') {
+    const vals = r.finals.map(v => v/1e6);
+    const mx = Math.min(Math.max(...vals.filter(v=>v<100)), 20);
+    const mn = Math.min(...vals);
+    const bins = 40, bs = (mx - mn) / bins;
+    const counts = new Array(bins).fill(0);
+    vals.forEach(v => { const i = Math.min(Math.floor((v-mn)/bs), bins-1); if (i>=0) counts[i]++; });
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: counts.map((_,i) => (mn + i*bs).toFixed(1)),
+        datasets: [{ label: 'Simulations', data: counts, backgroundColor: counts.map((_,i) => (mn+i*bs)<=0 ? 'rgba(192,57,43,0.5)' : 'rgba(201,168,76,0.4)'), borderWidth:0 }]
+      },
+      options: { ...baseOpts }
+    });
+  } else {
+    const yrs = Array.from({length: dur}, (_, i) => i + 1);
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: yrs.map(y => p.retireAge + y),
+        datasets: [
+          { label: 'Nominal ($K)', data: yrs.map(y => p.spending * Math.pow(1+p.inflation,y)/1e3), backgroundColor:'rgba(201,168,76,0.4)', borderWidth:0 },
+          { label: "Real (Today's $K)", data: yrs.map(() => p.spending/1e3), backgroundColor:'rgba(61,153,112,0.3)', borderWidth:0 },
+        ]
+      },
+      options: { ...baseOpts }
+    });
+  }
+}
+
+// ─── Run Simulation ───────────────────────────────────────────────────────
+function runSim() {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.querySelector('span').textContent = '⟳ Simulating 10,000 paths...';
+
+  setTimeout(() => {
+    const p = getParams();
+    const r = monteCarlo(p);
+    const fi = calcFire(p);
+    const coast = calcCoast(p);
+    lastResults = r; lastParams = p;
+
+    // Update scores
+    const prob = r.probability;
+    const pEl = document.getElementById('probScore');
+    pEl.textContent = prob.toFixed(1) + '%';
+    pEl.style.color = prob >= 85 ? 'var(--green)' : prob >= 65 ? 'var(--gold)' : 'var(--red)';
+    document.getElementById('probSub').textContent = prob >= 85 ? 'High confidence — solid plan' : prob >= 65 ? 'Moderate — consider adjustments' : 'High risk — revise now';
+    document.getElementById('probBar').style.width = prob + '%';
+    document.getElementById('probBar').style.background = prob >= 85 ? 'var(--green)' : prob >= 65 ? 'var(--gold)' : 'var(--red)';
+    document.getElementById('probCard').classList.add('lit');
+
+    document.getElementById('fireAge').textContent = fi.fireAge <= p.currentAge + 60 ? fi.fireAge : '70+';
+    document.getElementById('fireAge').style.color = fi.fireAge <= p.retireAge ? 'var(--green)' : 'var(--gold)';
+    document.getElementById('fireAgeSub').textContent = fi.fireAge <= p.retireAge ? `${fi.yrs} yrs — on track ✓` : `${fi.yrs} yrs — ${fi.fireAge - p.retireAge} past target`;
+
+    document.getElementById('coastNum').textContent = fmt(coast);
+    document.getElementById('coastNum').style.color = p.portfolio >= coast ? 'var(--green)' : 'var(--text2)';
+    document.getElementById('coastSub').textContent = p.portfolio >= coast ? '✓ Coast FIRE achieved!' : `Need ${fmt(coast - p.portfolio)} more`;
+
+    document.getElementById('statMedian').textContent = fmt(r.median);
+    document.getElementById('statWorst').textContent = fmt(r.worst10);
+    document.getElementById('statBest').textContent = fmt(r.best90);
+    document.getElementById('statFire').textContent = fmt(fi.fireNum);
+
+    renderChart(r, p);
+
+    btn.disabled = false;
+    btn.querySelector('span').textContent = '▶ Run 10,000 Simulations';
+  }, 60);
+}
+
+function applyScenario(name) {
+  const s = { base:{ret:7,inf:3}, conservative:{ret:5,inf:3.5}, bull:{ret:9,inf:2.5} }[name];
+  document.getElementById('returnRate').value = s.ret;
+  document.getElementById('inflation').value = s.inf;
+  document.getElementById('retVal').textContent = s.ret.toFixed(1) + '%';
+  document.getElementById('inflVal').textContent = s.inf.toFixed(1) + '%';
+  runSim();
+}
+</script>
+</body>
+</html>  background: rgba(8,8,9,0.95);
   backdrop-filter: blur(24px);
 }
 .logo { display: flex; align-items: center; gap: 14px; }
