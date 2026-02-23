@@ -4,37 +4,765 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IGNITE — FIRE Probability Engine</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Söhne+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #080808;
-  --bg2: #0e0e0f;
-  --surface: #111112;
-  --surface2: #161618;
-  --border: #1e1e22;
-  --border2: #2a2a30;
-  --gold: #c9a84c;
-  --gold2: #e8c96a;
-  --gold-dim: rgba(201,168,76,0.15);
-  --gold-glow: rgba(201,168,76,0.06);
-  --green: #3d9970;
-  --red: #c0392b;
-  --text: #f0efe8;
-  --text2: #8a8a8f;
-  --text3: #4a4a52;
+  --bg:       #080809;
+  --surface:  #0f0f11;
+  --surface2: #141416;
+  --surface3: #1a1a1e;
+  --border:   #1e1e24;
+  --border2:  #28282f;
+  --gold:     #c8a84b;
+  --green:    #3a9068;
+  --red:      #b83232;
+  --text:     #eeede6;
+  --text2:    #888890;
+  --text3:    #46464e;
   --mono: 'DM Mono', monospace;
   --serif: 'Cormorant Garamond', serif;
   --sans: 'DM Sans', sans-serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
 
-body {
+/* ── HEADER ─────────────────────────────── */
+.header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 48px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8,8,9,0.95);
+  backdrop-filter: blur(24px);
+}
+.logo { display: flex; align-items: center; gap: 14px; }
+.logo-rule { width: 28px; height: 1px; background: var(--gold); }
+.logo-name { font-family: var(--serif); font-size: 1rem; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; }
+.header-right { display: flex; align-items: center; gap: 28px; }
+.nav-link { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.14em; color: var(--text3); text-decoration: none; text-transform: uppercase; transition: color 0.2s; }
+.nav-link:hover { color: var(--gold); }
+.btn-cta { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; background: var(--gold); color: #080809; border: none; padding: 10px 22px; cursor: pointer; font-weight: 500; transition: opacity 0.18s; }
+.btn-cta:hover { opacity: 0.84; }
+
+/* ── HERO ────────────────────────────────── */
+.hero {
+  min-height: 100vh; display: flex; flex-direction: column;
+  justify-content: flex-end; padding: 0 48px 88px; position: relative; overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 55% 55% at 72% 38%, rgba(200,168,75,0.05) 0%, transparent 70%),
+              radial-gradient(ellipse 40% 50% at 18% 72%, rgba(58,144,104,0.03) 0%, transparent 65%);
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 72px 72px; opacity: 0.28;
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 10%, transparent 80%);
+}
+.hero-tag {
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.32em; color: var(--gold);
+  text-transform: uppercase; margin-bottom: 22px; display: flex; align-items: center; gap: 14px;
+  opacity: 0; animation: rise 0.7s 0.15s ease forwards;
+}
+.hero-tag::before { content: ''; width: 36px; height: 1px; background: var(--gold); display: block; }
+.hero-h1 {
+  font-family: var(--serif); font-size: clamp(4.5rem, 9.5vw, 10rem);
+  font-weight: 300; line-height: 0.9; letter-spacing: -0.025em; margin-bottom: 44px;
+  opacity: 0; animation: rise 0.7s 0.28s ease forwards;
+}
+.hero-h1 em { font-style: italic; color: var(--gold); }
+.hero-foot {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  opacity: 0; animation: rise 0.7s 0.42s ease forwards;
+}
+.hero-desc { max-width: 400px; font-size: 0.92rem; color: var(--text2); line-height: 1.8; font-weight: 300; }
+.hero-kpis { display: flex; gap: 52px; }
+.kpi-num { font-family: var(--serif); font-size: 3rem; font-weight: 300; color: var(--gold); letter-spacing: -0.03em; line-height: 1; }
+.kpi-label { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.14em; color: var(--text3); text-transform: uppercase; margin-top: 7px; }
+
+/* ── TICKER ──────────────────────────────── */
+.ticker { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 18px 48px; display: flex; gap: 52px; overflow: hidden; }
+.ticker-item { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.1em; color: var(--text3); text-transform: uppercase; white-space: nowrap; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.ticker-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--gold); }
+
+/* ── PAYWALL ─────────────────────────────── */
+.paywall { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--border); }
+.paywall-left { padding: 100px 64px 100px 48px; border-right: 1px solid var(--border); }
+.paywall-left h2 { font-family: var(--serif); font-size: clamp(2.6rem, 4vw, 4.2rem); font-weight: 300; line-height: 1.08; letter-spacing: -0.025em; margin-bottom: 22px; }
+.paywall-left h2 em { font-style: italic; color: var(--gold); }
+.paywall-left p { color: var(--text2); font-size: 0.92rem; line-height: 1.8; font-weight: 300; margin-bottom: 44px; max-width: 420px; }
+.feature-list { list-style: none; margin-bottom: 52px; }
+.feature-list li { display: flex; align-items: flex-start; gap: 14px; padding: 13px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; color: var(--text2); font-weight: 300; line-height: 1.5; }
+.feature-list li::before { content: '→'; color: var(--gold); font-family: var(--mono); font-size: 0.72rem; flex-shrink: 0; margin-top: 1px; }
+.price-row { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
+.price-fig { font-family: var(--serif); font-size: 4.5rem; font-weight: 300; color: var(--gold); letter-spacing: -0.04em; line-height: 1; }
+.price-meta { display: flex; flex-direction: column; gap: 3px; }
+.price-meta span { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em; color: var(--text3); text-transform: uppercase; }
+.price-meta span.good { color: var(--green); }
+.price-note { font-family: var(--mono); font-size: 0.6rem; color: var(--text3); letter-spacing: 0.08em; margin-bottom: 32px; }
+.btn-buy { display: inline-flex; align-items: center; gap: 18px; background: var(--gold); color: #080809; border: none; padding: 18px 44px; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; font-weight: 500; transition: opacity 0.18s; }
+.btn-buy:hover { opacity: 0.86; }
+.btn-guarantee { margin-top: 14px; font-family: var(--mono); font-size: 0.58rem; color: var(--text3); letter-spacing: 0.07em; display: flex; align-items: center; gap: 8px; }
+
+.paywall-right { padding: 100px 48px 100px 64px; display: flex; flex-direction: column; justify-content: center; }
+.preview-card { background: var(--surface); border: 1px solid var(--border2); padding: 28px; position: relative; overflow: hidden; }
+.preview-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+.preview-blur { filter: blur(5px); opacity: 0.45; pointer-events: none; user-select: none; }
+.fake-scores { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+.fake-score-card { background: var(--surface2); border: 1px solid var(--border); padding: 14px; }
+.fake-score-lbl { font-family: var(--mono); font-size: 0.52rem; letter-spacing: 0.14em; color: var(--text3); text-transform: uppercase; margin-bottom: 8px; }
+.fake-score-val { font-family: var(--serif); font-size: 1.8rem; font-weight: 300; letter-spacing: -0.02em; }
+.fake-chart-area { height: 150px; position: relative; background: var(--surface2); border: 1px solid var(--border); padding: 12px; margin-bottom: 18px; }
+.fake-stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.fake-stat { background: var(--surface2); border: 1px solid var(--border); padding: 12px; }
+.fake-stat-lbl { font-family: var(--mono); font-size: 0.5rem; letter-spacing: 0.12em; color: var(--text3); text-transform: uppercase; margin-bottom: 6px; }
+.fake-stat-val { font-family: var(--mono); font-size: 1rem; font-weight: 500; }
+.preview-lock { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: radial-gradient(ellipse at center, rgba(8,8,9,0.82) 0%, rgba(8,8,9,0.5) 100%); }
+.lock-title { font-family: var(--serif); font-size: 1.6rem; font-weight: 300; letter-spacing: 0.04em; }
+.lock-sub { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.16em; color: var(--text3); text-transform: uppercase; }
+.btn-lock { margin-top: 8px; background: var(--gold); color: #080809; border: none; padding: 12px 28px; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; font-weight: 500; transition: opacity 0.18s; }
+.btn-lock:hover { opacity: 0.84; }
+
+/* ── APP ─────────────────────────────────── */
+.app-section { display: none; padding: 80px 48px; }
+.app-section.unlocked { display: block; animation: fadeIn 0.5s ease; }
+.app-header { margin-bottom: 48px; }
+.app-header-tag { font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.22em; color: var(--gold); text-transform: uppercase; margin-bottom: 10px; }
+.app-header h2 { font-family: var(--serif); font-size: 2.8rem; font-weight: 300; letter-spacing: -0.025em; }
+
+.score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-bottom: 2px; }
+.score-card { background: var(--surface); border: 1px solid var(--border); padding: 28px 32px; position: relative; overflow: hidden; }
+.score-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--gold); transform: scaleX(0); transform-origin: left; transition: transform 1s cubic-bezier(0.16,1,0.3,1); }
+.score-card.lit::before { transform: scaleX(1); }
+.sc-tag { font-family: var(--mono); font-size: 0.52rem; letter-spacing: 0.22em; color: var(--text3); text-transform: uppercase; margin-bottom: 14px; }
+.sc-val { font-family: var(--serif); font-size: 3.4rem; font-weight: 300; letter-spacing: -0.03em; line-height: 1; transition: color 0.4s; }
+.sc-sub { font-family: var(--mono); font-size: 0.58rem; color: var(--text3); margin-top: 10px; letter-spacing: 0.04em; line-height: 1.5; }
+.sc-bar { height: 1px; background: var(--border); margin-top: 18px; overflow: hidden; }
+.sc-bar-fill { height: 100%; transition: width 1.2s cubic-bezier(0.16,1,0.3,1); }
+
+.app-grid { display: grid; grid-template-columns: 380px 1fr; gap: 2px; margin-bottom: 2px; }
+
+/* Inputs */
+.inputs-panel { background: var(--surface); border: 1px solid var(--border); padding: 32px; }
+.panel-tag { font-family: var(--mono); font-size: 0.52rem; letter-spacing: 0.22em; color: var(--text3); text-transform: uppercase; padding-bottom: 18px; border-bottom: 1px solid var(--border); margin-bottom: 26px; }
+.field-group { margin-bottom: 20px; }
+.field-label { font-size: 0.78rem; color: var(--text2); font-weight: 300; margin-bottom: 7px; display: block; }
+.field-row { display: flex; align-items: center; }
+.field-prefix { font-family: var(--mono); font-size: 0.75rem; color: var(--text3); background: var(--surface3); border: 1px solid var(--border2); border-right: none; padding: 9px 10px; height: 38px; display: flex; align-items: center; flex-shrink: 0; }
+.field-suffix { font-family: var(--mono); font-size: 0.75rem; color: var(--text3); background: var(--surface3); border: 1px solid var(--border2); border-left: none; padding: 9px 10px; height: 38px; display: flex; align-items: center; flex-shrink: 0; }
+input[type="number"] { width: 100%; background: var(--surface2); border: 1px solid var(--border2); color: var(--text); padding: 9px 12px; font-family: var(--mono); font-size: 0.82rem; outline: none; height: 38px; transition: border-color 0.2s; -moz-appearance: textfield; }
+input[type="number"]:focus { border-color: var(--gold); }
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+.field-hint { font-family: var(--mono); font-size: 0.56rem; color: var(--text3); margin-top: 5px; letter-spacing: 0.05em; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
+.select-field { width: 100%; background: var(--surface2); border: 1px solid var(--border2); color: var(--text); padding: 9px 12px; font-family: var(--mono); font-size: 0.78rem; outline: none; cursor: pointer; appearance: none; height: 38px; }
+.run-btn { width: 100%; background: var(--gold); color: #080809; border: none; padding: 15px; font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; font-weight: 500; margin-top: 10px; transition: opacity 0.18s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.run-btn:hover { opacity: 0.87; }
+.run-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Chart */
+.chart-panel { background: var(--surface); border: 1px solid var(--border); padding: 32px; display: flex; flex-direction: column; }
+.chart-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.chart-tabs { display: flex; gap: 2px; }
+.tab-btn { font-family: var(--mono); font-size: 0.56rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 8px 16px; background: transparent; border: 1px solid var(--border); color: var(--text3); cursor: pointer; transition: all 0.2s; }
+.tab-btn:hover { color: var(--text2); border-color: var(--border2); }
+.tab-btn.active { background: var(--gold); color: #080809; border-color: var(--gold); }
+.chart-legend { display: flex; gap: 20px; }
+.legend-item { display: flex; align-items: center; gap: 7px; }
+.legend-line { width: 20px; height: 2px; border-radius: 1px; }
+.legend-label { font-family: var(--mono); font-size: 0.56rem; color: var(--text3); letter-spacing: 0.08em; }
+.chart-wrap { flex: 1; position: relative; min-height: 320px; }
+canvas { width: 100% !important; height: 100% !important; }
+
+/* Stats */
+.stats-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin-bottom: 2px; }
+.stat-tile { background: var(--surface); border: 1px solid var(--border); padding: 20px 24px; }
+.stat-tile-label { font-family: var(--mono); font-size: 0.52rem; letter-spacing: 0.16em; color: var(--text3); text-transform: uppercase; margin-bottom: 10px; }
+.stat-tile-val { font-family: var(--mono); font-size: 1.25rem; font-weight: 500; }
+
+/* Scenarios */
+.scenarios-panel { background: var(--surface); border: 1px solid var(--border); padding: 32px; margin-bottom: 2px; }
+.scenarios-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 20px; }
+.scenario-card { background: var(--surface2); border: 1px solid var(--border); padding: 18px; cursor: pointer; text-align: left; transition: border-color 0.2s; width: 100%; }
+.scenario-card:hover { border-color: var(--gold); }
+.scenario-card-name { font-family: var(--sans); font-size: 0.82rem; font-weight: 400; color: var(--text); margin-bottom: 5px; }
+.scenario-card-desc { font-family: var(--mono); font-size: 0.58rem; color: var(--text3); line-height: 1.55; }
+
+/* Footer */
+.footer { border-top: 1px solid var(--border); padding: 28px 48px; display: flex; align-items: center; justify-content: space-between; }
+.footer span { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.1em; color: var(--text3); }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(4,4,5,0.92); z-index: 500; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.28s; backdrop-filter: blur(10px); }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: var(--surface); border: 1px solid var(--border2); padding: 52px; width: 510px; max-width: 94vw; max-height: 90vh; overflow-y: auto; transform: translateY(20px); transition: transform 0.36s cubic-bezier(0.16,1,0.3,1); position: relative; }
+.modal::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-close { position: absolute; top: 20px; right: 24px; background: none; border: none; color: var(--text3); font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.1em; cursor: pointer; text-transform: uppercase; }
+.modal-close:hover { color: var(--text); }
+.modal-tag { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.2em; color: var(--gold); text-transform: uppercase; margin-bottom: 14px; }
+.modal h2 { font-family: var(--serif); font-size: 2.6rem; font-weight: 300; letter-spacing: -0.02em; line-height: 1.05; margin-bottom: 8px; }
+.modal-price { font-family: var(--mono); font-size: 0.68rem; color: var(--gold); margin-bottom: 30px; letter-spacing: 0.08em; }
+.modal-features { list-style: none; margin-bottom: 36px; }
+.modal-features li { font-size: 0.86rem; color: var(--text2); padding: 11px 0; border-bottom: 1px solid var(--border); display: flex; gap: 12px; font-weight: 300; line-height: 1.5; }
+.modal-features li::before { content: '✦'; color: var(--gold); font-size: 0.65rem; flex-shrink: 0; margin-top: 2px; }
+.modal-guarantee { margin-top: 14px; font-family: var(--mono); font-size: 0.58rem; color: var(--text3); letter-spacing: 0.06em; text-align: center; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.65s ease, transform 0.65s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 960px) {
+  .header { padding: 16px 24px; }
+  .hero { padding: 100px 24px 64px; }
+  .hero-foot { flex-direction: column; gap: 32px; }
+  .ticker { padding: 14px 24px; }
+  .paywall { grid-template-columns: 1fr; }
+  .paywall-left { padding: 72px 24px; border-right: none; border-bottom: 1px solid var(--border); }
+  .paywall-right { padding: 60px 24px; }
+  .app-section { padding: 48px 24px; }
+  .score-grid { grid-template-columns: 1fr; }
+  .app-grid { grid-template-columns: 1fr; }
+  .stats-strip { grid-template-columns: 1fr 1fr; }
+  .scenarios-grid { grid-template-columns: 1fr 1fr; }
+  .footer { flex-direction: column; gap: 10px; padding: 24px; text-align: center; }
+  .modal { padding: 36px 28px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">
+    <div class="logo-rule"></div>
+    <div class="logo-name">Ignite</div>
+  </div>
+  <div class="header-right">
+    <a href="#pricing" class="nav-link">Pricing</a>
+    <button class="btn-cta" onclick="openModal()">Get Access — $39</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-tag">Monte Carlo Retirement Engine</div>
+  <h1 class="hero-h1">Will your<br>money <em>last?</em></h1>
+  <div class="hero-foot">
+    <p class="hero-desc">10,000 retirement simulations in under three seconds. One probability score tells you everything. Built for the FIRE community — by people who take financial independence seriously.</p>
+    <div class="hero-kpis">
+      <div><div class="kpi-num">10K</div><div class="kpi-label">Simulations per run</div></div>
+      <div><div class="kpi-num">&lt;3s</div><div class="kpi-label">Time to result</div></div>
+      <div><div class="kpi-num">$39</div><div class="kpi-label">One-time. Forever.</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="ticker">
+  <div class="ticker-item"><div class="ticker-dot"></div>Monte Carlo Simulation</div>
+  <div class="ticker-item"><div class="ticker-dot"></div>Safe Withdrawal Rate Analysis</div>
+  <div class="ticker-item"><div class="ticker-dot"></div>Coast FIRE Calculator</div>
+  <div class="ticker-item"><div class="ticker-dot"></div>Sequence of Returns Risk</div>
+  <div class="ticker-item"><div class="ticker-dot"></div>Withdrawal Ladder Modeling</div>
+  <div class="ticker-item"><div class="ticker-dot"></div>No Subscription. Ever.</div>
+</div>
+
+<section class="paywall" id="pricing">
+  <div class="paywall-left reveal">
+    <h2>The only number<br>that <em>actually matters</em></h2>
+    <p>Your FIRE Probability Score. How likely is your money to survive 40+ years across 10,000 simulated market scenarios — including crashes, inflation shocks, and lost decades.</p>
+    <ul class="feature-list">
+      <li>Full Monte Carlo with 10,000 retirement path simulations</li>
+      <li>FIRE date calculator at your current savings trajectory</li>
+      <li>Coast FIRE number — the point where you can stop contributing</li>
+      <li>Stress test across base, conservative, and bull market conditions</li>
+      <li>Withdrawal ladder with full inflation adjustment modeling</li>
+      <li>P10 / Median / P90 percentile path visualization</li>
+      <li>No artificial input limits — model any portfolio size</li>
+    </ul>
+    <div class="price-row">
+      <div class="price-fig">$39</div>
+      <div class="price-meta">
+        <span>One-time payment</span>
+        <span class="good">Lifetime access</span>
+      </div>
+    </div>
+    <div class="price-note">No subscription. No renewal. No account required.</div>
+    <button class="btn-buy" onclick="openModal()"><span>Unlock Full Access</span><span>→</span></button>
+    <div class="btn-guarantee"><span style="color:var(--gold)">●</span> 30-day money-back guarantee · Instant access · Secure checkout</div>
+  </div>
+
+  <div class="paywall-right reveal">
+    <div class="preview-card">
+      <div class="preview-blur">
+        <div class="fake-scores">
+          <div class="fake-score-card"><div class="fake-score-lbl">FIRE Probability</div><div class="fake-score-val" style="color:var(--green)">87.3%</div></div>
+          <div class="fake-score-card"><div class="fake-score-lbl">FIRE Age</div><div class="fake-score-val" style="color:var(--gold)">48</div></div>
+          <div class="fake-score-card"><div class="fake-score-lbl">Coast FIRE</div><div class="fake-score-val">$312K</div></div>
+        </div>
+        <div class="fake-chart-area">
+          <svg width="100%" height="100%" viewBox="0 0 400 126" preserveAspectRatio="none">
+            <line x1="0" y1="32" x2="400" y2="32" stroke="#1e1e24" stroke-width="1"/>
+            <line x1="0" y1="64" x2="400" y2="64" stroke="#1e1e24" stroke-width="1"/>
+            <line x1="0" y1="96" x2="400" y2="96" stroke="#1e1e24" stroke-width="1"/>
+            <path d="M0,98 C60,88 120,54 180,44 C240,34 300,14 400,8" stroke="#3a9068" stroke-width="1.5" fill="none" opacity="0.7"/>
+            <path d="M0,105 C60,100 120,72 180,62 C240,52 300,34 400,28" stroke="#c8a84b" stroke-width="2" fill="none"/>
+            <path d="M0,112 C60,110 120,104 180,108 C240,112 300,98 400,104" stroke="#b83232" stroke-width="1.5" fill="none" opacity="0.7"/>
+          </svg>
+        </div>
+        <div class="fake-stat-row">
+          <div class="fake-stat"><div class="fake-stat-lbl">Median End</div><div class="fake-stat-val" style="color:var(--gold)">$2.4M</div></div>
+          <div class="fake-stat"><div class="fake-stat-lbl">Worst 10%</div><div class="fake-stat-val" style="color:var(--red)">$0</div></div>
+          <div class="fake-stat"><div class="fake-stat-lbl">Best 90%</div><div class="fake-stat-val" style="color:var(--green)">$6.1M</div></div>
+        </div>
+      </div>
+      <div class="preview-lock">
+        <div style="font-size:1.6rem">🔒</div>
+        <div class="lock-title">Full Access — $39</div>
+        <div class="lock-sub">One-time · Lifetime · Instant</div>
+        <button class="btn-lock" onclick="openModal()">Unlock Now →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="app-section" id="appSection">
+  <div class="app-header">
+    <div class="app-header-tag">// Full Access Unlocked</div>
+    <h2>Your FIRE Simulator</h2>
+  </div>
+
+  <div class="score-grid">
+    <div class="score-card" id="probCard">
+      <div class="sc-tag">FIRE Probability</div>
+      <div class="sc-val" id="probScore" style="color:var(--text3)">—</div>
+      <div class="sc-sub" id="probSub">Run simulation to calculate</div>
+      <div class="sc-bar"><div class="sc-bar-fill" id="probBar" style="width:0%;background:var(--gold)"></div></div>
+    </div>
+    <div class="score-card">
+      <div class="sc-tag">FIRE Age</div>
+      <div class="sc-val" id="fireAge" style="color:var(--text3)">—</div>
+      <div class="sc-sub" id="fireAgeSub">At current savings rate</div>
+    </div>
+    <div class="score-card">
+      <div class="sc-tag">Coast FIRE Number</div>
+      <div class="sc-val" id="coastNum" style="font-size:2.2rem;color:var(--text3)">—</div>
+      <div class="sc-sub" id="coastSub">Amount needed to coast</div>
+    </div>
+  </div>
+
+  <div class="app-grid">
+    <div class="inputs-panel">
+      <div class="panel-tag">// Portfolio Parameters</div>
+
+      <div class="field-group">
+        <label class="field-label">Current Portfolio Value</label>
+        <div class="field-row"><div class="field-prefix">$</div><input type="number" id="portfolio" value="500000" min="0" step="1000" placeholder="500000"></div>
+        <div class="field-hint">Enter any amount — no upper limit</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Annual Spending in Retirement</label>
+        <div class="field-row"><div class="field-prefix">$</div><input type="number" id="spending" value="40000" min="0" step="500" placeholder="40000"></div>
+        <div class="field-hint">Your expected yearly expenses post-FIRE</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Annual Savings (Current)</label>
+        <div class="field-row"><div class="field-prefix">$</div><input type="number" id="savings" value="30000" min="0" step="500" placeholder="30000"></div>
+        <div class="field-hint">How much you save per year right now</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Current Age</label>
+        <input type="number" id="currentAge" value="35" min="18" max="99" step="1" placeholder="35" style="width:100%">
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Target Retirement Age</label>
+        <input type="number" id="retireAge" value="50" min="18" max="99" step="1" placeholder="50" style="width:100%">
+      </div>
+
+      <div class="divider"></div>
+      <div class="panel-tag">// Market Assumptions</div>
+
+      <div class="field-group">
+        <label class="field-label">Expected Annual Return</label>
+        <div class="field-row"><input type="number" id="returnRate" value="7.0" min="0" step="0.1" placeholder="7.0"><div class="field-suffix">%</div></div>
+        <div class="field-hint">Historical US equity average ~7% real</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Safe Withdrawal Rate</label>
+        <div class="field-row"><input type="number" id="swr" value="4.0" min="0.1" step="0.1" placeholder="4.0"><div class="field-suffix">%</div></div>
+        <div class="field-hint">Classic 4% rule — adjust for your risk</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Inflation Rate</label>
+        <div class="field-row"><input type="number" id="inflation" value="3.0" min="0" step="0.1" placeholder="3.0"><div class="field-suffix">%</div></div>
+        <div class="field-hint">US long-run average ~3%</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Retirement Duration</label>
+        <select class="select-field" id="duration">
+          <option value="30">30 years</option>
+          <option value="40" selected>40 years</option>
+          <option value="50">50 years</option>
+          <option value="60">60 years</option>
+        </select>
+      </div>
+
+      <button class="run-btn" id="runBtn" onclick="runSim()">
+        <span id="runBtnText">▶ Run 10,000 Simulations</span>
+      </button>
+    </div>
+
+    <div class="chart-panel">
+      <div class="chart-top">
+        <div class="chart-tabs">
+          <button class="tab-btn active" onclick="switchTab('mc',this)">Monte Carlo Paths</button>
+          <button class="tab-btn" onclick="switchTab('dist',this)">Distribution</button>
+          <button class="tab-btn" onclick="switchTab('ladder',this)">Withdrawal Ladder</button>
+        </div>
+        <div class="chart-legend" id="chartLegend">
+          <div class="legend-item"><div class="legend-line" style="background:#3a9068"></div><span class="legend-label">P90 Best</span></div>
+          <div class="legend-item"><div class="legend-line" style="background:#c8a84b"></div><span class="legend-label">Median</span></div>
+          <div class="legend-item"><div class="legend-line" style="background:#b83232"></div><span class="legend-label">P10 Worst</span></div>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="mainChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat-tile"><div class="stat-tile-label">Median Portfolio at End</div><div class="stat-tile-val" id="statMedian" style="color:var(--gold)">—</div></div>
+    <div class="stat-tile"><div class="stat-tile-label">Worst 10th Percentile</div><div class="stat-tile-val" id="statWorst" style="color:var(--red)">—</div></div>
+    <div class="stat-tile"><div class="stat-tile-label">Best 90th Percentile</div><div class="stat-tile-val" id="statBest" style="color:var(--green)">—</div></div>
+    <div class="stat-tile"><div class="stat-tile-label">Required FIRE Number</div><div class="stat-tile-val" id="statFire">—</div></div>
+  </div>
+
+  <div class="scenarios-panel">
+    <div class="panel-tag">// Quick Scenarios — click to apply</div>
+    <div class="scenarios-grid">
+      <button class="scenario-card" onclick="applyScenario('base')">
+        <div class="scenario-card-name">Base Case</div>
+        <div class="scenario-card-desc">7.0% return · 3.0% inflation · Historical US average</div>
+      </button>
+      <button class="scenario-card" onclick="applyScenario('conservative')">
+        <div class="scenario-card-name">Conservative</div>
+        <div class="scenario-card-desc">5.0% return · 3.5% inflation · Lower-return decade</div>
+      </button>
+      <button class="scenario-card" onclick="applyScenario('bull')">
+        <div class="scenario-card-name">Bull Market</div>
+        <div class="scenario-card-desc">9.0% return · 2.5% inflation · Strong equity run</div>
+      </button>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <span>© 2025 IGNITE — FIRE Probability Engine</span>
+  <span>Built for the FIRE community · One-time purchase · No tracking</span>
+</footer>
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕ Close</button>
+    <div class="modal-tag">One-time purchase · Lifetime access</div>
+    <h2>Unlock<br>IGNITE</h2>
+    <div class="modal-price">$39 · Pay once · Use forever · 30-day guarantee</div>
+    <ul class="modal-features">
+      <li>10,000 Monte Carlo retirement path simulations</li>
+      <li>FIRE Probability Score — one number, complete clarity</li>
+      <li>FIRE date calculator at your current savings rate</li>
+      <li>Coast FIRE number — when you can stop contributing</li>
+      <li>Safe Withdrawal Rate sensitivity testing</li>
+      <li>Withdrawal ladder with full inflation adjustment</li>
+      <li>Base, Conservative, and Bull market scenario presets</li>
+      <li>No artificial input limits — model any figure</li>
+      <li>No account. No subscription. No renewal.</li>
+    </ul>
+    <button class="btn-buy" style="width:100%;justify-content:center;" onclick="handlePurchase()">Pay $39 — Get Instant Access →</button>
+    <div class="modal-guarantee">30-day money-back guarantee · Secure payment · Instant unlock</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// Scroll reveals
+const revObs = new IntersectionObserver(entries => {
+  entries.forEach((e,i) => { if(e.isIntersecting) setTimeout(()=>e.target.classList.add('visible'), i*100); });
+}, {threshold:0.08});
+document.querySelectorAll('.reveal').forEach(el => revObs.observe(el));
+
+// Paywall — set DEMO_MODE=true to bypass for your own testing
+const DEMO_MODE = false;
+let unlocked = DEMO_MODE || localStorage.getItem('ignite_unlocked')==='true';
+if(unlocked) showApp();
+
+function handlePurchase() {
+  // REPLACE with your Lemon Squeezy URL:
+  const CHECKOUT = 'https://YOUR_STORE.lemonsqueezy.com/buy/YOUR_PRODUCT_ID';
+  window.location.href = CHECKOUT;
+  // To test without paying, comment out the two lines above and uncomment these:
+  // unlocked=true; localStorage.setItem('ignite_unlocked','true');
+  // closeModal(); showApp(); document.getElementById('appSection').scrollIntoView({behavior:'smooth'});
+}
+
+function showApp() {
+  document.getElementById('appSection').classList.add('unlocked');
+  setTimeout(runSim, 400);
+}
+
+function openModal() {
+  if(unlocked){ document.getElementById('appSection').scrollIntoView({behavior:'smooth'}); return; }
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); document.body.style.overflow=''; }
+function closeOutside(e) { if(e.target.id==='modalOverlay') closeModal(); }
+
+function fmt(n) {
+  if(n===null||isNaN(n)) return '—';
+  const a=Math.abs(n);
+  if(a>=1e9) return '$'+(n/1e9).toFixed(2)+'B';
+  if(a>=1e6) return '$'+(n/1e6).toFixed(2)+'M';
+  if(a>=1e3) return '$'+(n/1e3).toFixed(0)+'K';
+  return '$'+Math.round(n).toLocaleString();
+}
+
+function getVal(id) { return parseFloat(document.getElementById(id).value)||0; }
+
+function getParams() {
+  return {
+    portfolio:  getVal('portfolio'),
+    spending:   getVal('spending'),
+    savings:    getVal('savings'),
+    currentAge: getVal('currentAge'),
+    retireAge:  getVal('retireAge'),
+    returnRate: getVal('returnRate')/100,
+    swr:        getVal('swr')/100,
+    inflation:  getVal('inflation')/100,
+    duration:   getVal('duration'),
+  };
+}
+
+function randNorm(mean,std) {
+  let u=0,v=0;
+  while(!u) u=Math.random();
+  while(!v) v=Math.random();
+  return mean+std*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+
+function simulate(p,n=10000) {
+  const {portfolio,spending,savings,currentAge,retireAge,returnRate,inflation,duration}=p;
+  const accumYrs=Math.max(0,retireAge-currentAge);
+  const vol=0.155;
+  let ok=0;
+  const finals=[],paths=[];
+  for(let i=0;i<n;i++){
+    let bal=portfolio;
+    for(let y=0;y<accumYrs;y++) bal=bal*(1+randNorm(returnRate,vol))+savings;
+    const path=[Math.max(bal,0)];
+    let died=false;
+    for(let y=0;y<duration;y++){
+      bal=bal*(1+randNorm(returnRate-0.004,vol))-spending*Math.pow(1+inflation,y);
+      path.push(Math.max(bal,0));
+      if(bal<=0&&!died) died=true;
+    }
+    if(!died) ok++;
+    finals.push(bal);
+    paths.push(path);
+  }
+  const sorted=[...paths].sort((a,b)=>(b[b.length-1]||0)-(a[a.length-1]||0));
+  finals.sort((a,b)=>a-b);
+  return {
+    probability:(ok/n)*100,
+    p90:sorted[Math.floor(n*0.1)],
+    p50:sorted[Math.floor(n*0.5)],
+    p10:sorted[Math.floor(n*0.9)],
+    median:finals[Math.floor(n*0.5)],
+    worst10:Math.max(finals[Math.floor(n*0.1)],0),
+    best90:finals[Math.floor(n*0.9)],
+    finals,
+  };
+}
+
+function calcFire(p) {
+  const num=p.spending/Math.max(p.swr,0.001);
+  let bal=p.portfolio,yrs=0;
+  while(bal<num&&yrs<80){bal=bal*1.07+p.savings;yrs++;}
+  return {num,age:Math.round(p.currentAge+yrs),yrs};
+}
+
+function calcCoast(p) {
+  const num=p.spending/Math.max(p.swr,0.001);
+  return num/Math.pow(1.07,Math.max(1,p.retireAge-p.currentAge));
+}
+
+let chart=null, activeTab='mc', lastR=null, lastP=null;
+
+function switchTab(tab,el) {
+  activeTab=tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('chartLegend').style.display=tab==='mc'?'flex':'none';
+  if(lastR) renderChart(lastR,lastP);
+}
+
+function renderChart(r,p) {
+  const ctx=document.getElementById('mainChart').getContext('2d');
+  if(chart){chart.destroy();chart=null;}
+  const dur=p.duration;
+  const labels=Array.from({length:dur+1},(_,i)=>p.retireAge+i);
+
+  const scaleX={
+    grid:{color:'rgba(255,255,255,0.04)',drawBorder:false},
+    border:{color:'#28282f',width:1},
+    ticks:{color:'#46464e',font:{family:'DM Mono',size:9},maxTicksLimit:10,padding:8},
+    title:{display:true,text:'Age',color:'#46464e',font:{family:'DM Mono',size:9},padding:{top:8}}
+  };
+  const scaleYMoney={
+    grid:{color:'rgba(255,255,255,0.05)',drawBorder:false},
+    border:{color:'#28282f',width:1},
+    ticks:{color:'#46464e',font:{family:'DM Mono',size:9},padding:10,
+      callback:v=>v>=1?'$'+v.toFixed(1)+'M':v>=0.001?'$'+(v*1000).toFixed(0)+'K':'$0'},
+    title:{display:true,text:'Portfolio Value ($M)',color:'#46464e',font:{family:'DM Mono',size:9},padding:{bottom:8}}
+  };
+  const tooltip={
+    backgroundColor:'#141416',borderColor:'#28282f',borderWidth:1,
+    titleColor:'#c8a84b',bodyColor:'#888890',cornerRadius:0,padding:10,
+    titleFont:{family:'DM Mono',size:9},bodyFont:{family:'DM Mono',size:9}
+  };
+
+  if(activeTab==='mc'){
+    const toM=arr=>arr?.slice(0,dur+1).map(v=>Math.max(v,0)/1e6)||[];
+    chart=new Chart(ctx,{
+      type:'line',
+      data:{labels,datasets:[
+        {label:'P90 (Best)',data:toM(r.p90),borderColor:'#3a9068',borderWidth:1.5,pointRadius:0,fill:false,tension:0.35},
+        {label:'Median',data:toM(r.p50),borderColor:'#c8a84b',borderWidth:2.5,pointRadius:0,fill:false,tension:0.35},
+        {label:'P10 (Worst)',data:toM(r.p10),borderColor:'#b83232',borderWidth:1.5,pointRadius:0,fill:false,tension:0.35},
+      ]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        animation:{duration:800,easing:'easeOutQuart'},
+        plugins:{legend:{display:false},tooltip:{...tooltip,callbacks:{
+          title:items=>'Age '+items[0].label,
+          label:item=>' '+item.dataset.label+': $'+item.parsed.y.toFixed(2)+'M'
+        }}},
+        scales:{x:scaleX,y:scaleYMoney}
+      }
+    });
+  } else if(activeTab==='dist'){
+    const vals=r.finals.map(v=>v/1e6);
+    const cap=Math.min(Math.max(...vals.filter(v=>isFinite(v))),25);
+    const floor=Math.min(...vals.filter(v=>isFinite(v)));
+    const bins=50,bw=(cap-floor)/bins;
+    const counts=new Array(bins).fill(0);
+    vals.forEach(v=>{if(!isFinite(v))return;const idx=Math.min(Math.floor((Math.min(v,cap)-floor)/bw),bins-1);if(idx>=0)counts[idx]++;});
+    chart=new Chart(ctx,{
+      type:'bar',
+      data:{labels:counts.map((_,i)=>(floor+(i+0.5)*bw).toFixed(1)),datasets:[{
+        label:'Simulations',data:counts,borderWidth:0,borderRadius:1,
+        backgroundColor:counts.map((_,i)=>floor+i*bw<=0?'rgba(184,50,50,0.55)':'rgba(200,168,75,0.42)')
+      }]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        animation:{duration:700,easing:'easeOutQuart'},
+        plugins:{legend:{display:false},tooltip:{...tooltip,callbacks:{
+          title:items=>'$'+items[0].label+'M',
+          label:item=>' '+item.parsed.y.toLocaleString()+' simulations'
+        }}},
+        scales:{
+          x:{...scaleX,title:{display:true,text:'Final Portfolio Value ($M)',color:'#46464e',font:{family:'DM Mono',size:9}},
+            ticks:{...scaleX.ticks,callback:(_,i)=>{const v=floor+i*bw;return v>=1?'$'+v.toFixed(0)+'M':'$'+Math.round(v*1000)+'K';}}},
+          y:{...scaleYMoney,ticks:{...scaleYMoney.ticks,callback:v=>v.toLocaleString()},
+            title:{display:true,text:'Number of Simulations',color:'#46464e',font:{family:'DM Mono',size:9}}}
+        }
+      }
+    });
+  } else {
+    const yrs=Array.from({length:dur},(_,i)=>i+1);
+    chart=new Chart(ctx,{
+      type:'bar',
+      data:{labels:yrs.map(y=>p.retireAge+y),datasets:[
+        {label:'Nominal withdrawal ($K)',data:yrs.map(y=>+(p.spending*Math.pow(1+p.inflation,y)/1000).toFixed(1)),backgroundColor:'rgba(200,168,75,0.45)',borderWidth:0,borderRadius:1},
+        {label:'Real purchasing power ($K)',data:yrs.map(()=>+(p.spending/1000).toFixed(1)),backgroundColor:'rgba(58,144,104,0.35)',borderWidth:0,borderRadius:1},
+      ]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        animation:{duration:700,easing:'easeOutQuart'},
+        plugins:{legend:{display:true,labels:{color:'#888890',font:{family:'DM Mono',size:9},boxWidth:12,boxHeight:2,padding:16}},
+          tooltip:{...tooltip,callbacks:{title:items=>'Age '+items[0].label,label:item=>' '+item.dataset.label+': $'+item.parsed.y.toFixed(1)+'K'}}},
+        scales:{
+          x:{...scaleX,title:{display:true,text:'Age',color:'#46464e',font:{family:'DM Mono',size:9}}},
+          y:{...scaleYMoney,ticks:{...scaleYMoney.ticks,callback:v=>'$'+v+'K'},
+            title:{display:true,text:'Annual Withdrawal ($K)',color:'#46464e',font:{family:'DM Mono',size:9}}}
+        }
+      }
+    });
+  }
+}
+
+function runSim() {
+  const btn=document.getElementById('runBtn');
+  const txt=document.getElementById('runBtnText');
+  btn.disabled=true; txt.textContent='⟳  Simulating 10,000 paths…';
+  setTimeout(()=>{
+    const p=getParams();
+    if(!p.spending||!p.swr){btn.disabled=false;txt.textContent='▶ Run 10,000 Simulations';return;}
+    const r=simulate(p);
+    const fi=calcFire(p);
+    const coast=calcCoast(p);
+    lastR=r;lastP=p;
+
+    const prob=r.probability;
+    const pEl=document.getElementById('probScore');
+    pEl.textContent=prob.toFixed(1)+'%';
+    pEl.style.color=prob>=85?'var(--green)':prob>=65?'var(--gold)':'var(--red)';
+    document.getElementById('probSub').textContent=prob>=85?'High confidence — your plan holds up':prob>=65?'Moderate confidence — review assumptions':'High failure risk — revise your plan';
+    document.getElementById('probBar').style.width=prob+'%';
+    document.getElementById('probBar').style.background=prob>=85?'var(--green)':prob>=65?'var(--gold)':'var(--red)';
+    document.getElementById('probCard').classList.add('lit');
+
+    const fEl=document.getElementById('fireAge');
+    fEl.textContent=fi.age<=p.currentAge+80?fi.age:'80+';
+    fEl.style.color=fi.age<=p.retireAge?'var(--green)':'var(--gold)';
+    document.getElementById('fireAgeSub').textContent=fi.age<=p.retireAge?fi.yrs+' years away — on target ✓':fi.yrs+' years away — '+(fi.age-p.retireAge)+'yr past target';
+
+    const cEl=document.getElementById('coastNum');
+    cEl.textContent=fmt(coast);
+    cEl.style.color=p.portfolio>=coast?'var(--green)':'var(--text2)';
+    document.getElementById('coastSub').textContent=p.portfolio>=coast?'✓ You have reached Coast FIRE':fmt(coast-p.portfolio)+' more to reach Coast FIRE';
+
+    document.getElementById('statMedian').textContent=fmt(r.median);
+    document.getElementById('statWorst').textContent=fmt(r.worst10);
+    document.getElementById('statBest').textContent=fmt(r.best90);
+    document.getElementById('statFire').textContent=fmt(fi.num);
+
+    renderChart(r,p);
+    btn.disabled=false;txt.textContent='▶ Run 10,000 Simulations';
+  },60);
+}
+
+function applyScenario(name) {
+  const s={base:{r:7,i:3},conservative:{r:5,i:3.5},bull:{r:9,i:2.5}}[name];
+  document.getElementById('returnRate').value=s.r;
+  document.getElementById('inflation').value=s.i;
+  runSim();
+}
+</script>
+</body>
+</html>body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--sans);
